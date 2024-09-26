@@ -1,9 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/JueViGrace/bakery-go/internal/server"
+	_ "github.com/joho/godotenv/autoload"
+)
 
 func main() {
-    var server string = "hello server"
+	server := server.New()
 
-   fmt.Println(server) 
+	err := server.Init()
+	if err != nil {
+		panic(fmt.Sprintf("cannot start server: %s", err))
+	}
 }
