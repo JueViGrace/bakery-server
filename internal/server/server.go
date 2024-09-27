@@ -32,7 +32,9 @@ func (s *FiberServer) Init() (err error) {
 	if err != nil {
 		return err
 	}
-
+    
+    s.RegisterRoutes()
+        
 	err = s.Listen(fmt.Sprintf(":%d", port))
 
 	return

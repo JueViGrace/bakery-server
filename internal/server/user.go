@@ -1,8 +1,6 @@
 package server
 
 import (
-	"net/http"
-
 	"github.com/JueViGrace/bakery-go/internal/database"
 	"github.com/gofiber/fiber/v2"
 )
@@ -24,8 +22,20 @@ func NewUserHandler(db database.Service) UserRoutes {
 	}
 }
 
+func (s *FiberServer) UserRoutes() {
+	userGroup := s.App.Group("/api/users")
+
+	userHandler := NewUserHandler(s.db)
+
+	userGroup.Get("/", userHandler.GetUsers)
+	userGroup.Get("/:id", userHandler.GetUserById)
+	userGroup.Patch("/:id", userHandler.UpdateUser)
+	userGroup.Delete("/:id", userHandler.DeleteUser)
+
+}
+
 func (h *UserHandler) GetUsers(c *fiber.Ctx) (err error) {
-	res := NewAPIResponse(http.StatusOK, "Ok", map[string]string{"success": "Hello world!"}, "Success")
+	res := RespondOk(map[string]string{"success": "Hello world!"}, "Success")
 	return c.JSON(res)
 }
 
@@ -33,10 +43,12 @@ func (h *UserHandler) GetUserById(c *fiber.Ctx) (err error) {
 
 	return
 }
+
 func (h *UserHandler) UpdateUser(c *fiber.Ctx) (err error) {
 
 	return
 }
+
 func (h *UserHandler) DeleteUser(c *fiber.Ctx) (err error) {
 
 	return
