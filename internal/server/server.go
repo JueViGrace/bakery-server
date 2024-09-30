@@ -5,14 +5,14 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/JueViGrace/bakery-go/internal/database"
+	"github.com/JueViGrace/bakery-go/internal/data"
 	"github.com/gofiber/fiber/v2"
 )
 
 type FiberServer struct {
 	*fiber.App
 
-	db database.Service
+	db data.Service
 }
 
 func New() *FiberServer {
@@ -22,7 +22,7 @@ func New() *FiberServer {
 			AppName:      "BakeryServer",
 		}),
 
-		db: database.New(),
+		db: data.NewService(),
 	}
 }
 

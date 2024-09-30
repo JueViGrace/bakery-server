@@ -7,6 +7,11 @@ SELECT *
 FROM bakery_user
 WHERE id = $1;
 
+-- name: GetUserByEmail :one
+SELECT *
+FROM bakery_user
+WHERE email = $1;
+
 -- name: CreateUser :one
 INSERT INTO bakery_user (
         id,

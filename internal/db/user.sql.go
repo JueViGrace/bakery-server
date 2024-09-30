@@ -3,7 +3,7 @@
 //   sqlc v1.27.0
 // source: user.sql
 
-package database
+package db
 
 import (
 	"context"
@@ -74,6 +74,31 @@ WHERE id = $1
 func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteUser, id)
 	return err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, first_name, last_name, email, password, birth_date, phone, role, created_at, updated_at, deleted_at
+FROM bakery_user
+WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (BakeryUser, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i BakeryUser
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Password,
+		&i.BirthDate,
+		&i.Phone,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one

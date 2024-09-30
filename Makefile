@@ -64,9 +64,9 @@ sqlc:
 	@sqlc generate
 
 migrate-up:
-	@GOOSE_DRIVER=postgres GOOSE_MIGRATION_DIR=./internal/database/schema GOOSE_DBSTRING="host=localhost port=5432 user=jvg25 password=root dbname=bakery_db sslmode=disable search_path=schema" goose up  
+	@GOOSE_DRIVER=postgres GOOSE_MIGRATION_DIR=./sql/schema GOOSE_DBSTRING="host=localhost port=5432 user=jvg25 password=root dbname=bakery_db sslmode=disable search_path=public" goose up  
 
 migrate-down:
-	@GOOSE_DRIVER=postgres GOOSE_MIGRATION_DIR=./internal/database/schema GOOSE_DBSTRING="host=localhost port=5432 user=jvg25 password=root dbname=bakery_db sslmode=disable search_path=schema" goose down
+	@GOOSE_DRIVER=postgres GOOSE_MIGRATION_DIR=./sql/schema GOOSE_DBSTRING="host=localhost port=5432 user=jvg25 password=root dbname=bakery_db sslmode=disable search_path=public" goose down
 
 .PHONY: all build run test clean watch docker-run docker-down sqlc migrate-up migrate-down itest

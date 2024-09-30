@@ -1,4 +1,4 @@
-package database
+package data
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/JueViGrace/bakery-go/internal/db"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -17,13 +18,19 @@ type Service interface {
 	Health() map[string]string
 
 	Close() error
+
+	UserStore() UserStore
+	AuthStore() AuthStore
 }
 
 type service struct {
-	db *sql.DB
+	db      *sql.DB
+	queries *db.Queries
+	ctx     context.Context
 }
 
 var (
+	ctx        = context.Background()
 	database   = os.Getenv("DB_DATABASE")
 	password   = os.Getenv("DB_PASSWORD")
 	username   = os.Getenv("DB_USERNAME")
@@ -31,26 +38,39 @@ var (
 	host       = os.Getenv("DB_HOST")
 	schema     = os.Getenv("DB_SCHEMA")
 	dbInstance *service
+	queries    *db.Queries
 )
 
-func New() Service {
+func NewService() Service {
 
 	if dbInstance != nil {
 		return dbInstance
 	}
 
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
-	db, err := sql.Open("pgx", connStr)
+	conn, err := sql.Open("pgx", connStr)
 
 	if err != nil {
-        log.Fatal(err)
+		log.Fatal(err)
 	}
 
+	queries = db.New(conn)
+
 	dbInstance = &service{
-		db: db,
+		db:      conn,
+		queries: queries,
+		ctx:     ctx,
 	}
 
 	return dbInstance
+}
+
+func (s *service) UserStore() UserStore {
+	return NewUserStore(s.ctx, s.queries)
+}
+
+func (s *service) AuthStore() AuthStore {
+	return NewAuthStore(s.ctx, s.queries)
 }
 
 // Health checks the health of the database connection by pinging the database.

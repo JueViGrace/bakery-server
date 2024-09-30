@@ -1,7 +1,8 @@
 package server
 
 import (
-	"github.com/JueViGrace/bakery-go/internal/database"
+	"github.com/JueViGrace/bakery-go/internal/data"
+	"github.com/JueViGrace/bakery-go/internal/util"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,44 +13,74 @@ type UserRoutes interface {
 	DeleteUser(c *fiber.Ctx) error
 }
 
-type UserHandler struct {
-	db database.Service
+type userHandler struct {
+	us data.UserStore
 }
 
-func NewUserHandler(db database.Service) UserRoutes {
-	return &UserHandler{
-		db: db,
+func NewUserHandler(us data.UserStore) UserRoutes {
+	return &userHandler{
+		us: us,
 	}
 }
 
 func (s *FiberServer) UserRoutes() {
-	userGroup := s.App.Group("/api/users")
+	usersGroup := s.App.Group("/api/users")
 
-	userHandler := NewUserHandler(s.db)
+	userHandler := NewUserHandler(s.db.UserStore())
 
-	userGroup.Get("/", userHandler.GetUsers)
-	userGroup.Get("/:id", userHandler.GetUserById)
-	userGroup.Patch("/:id", userHandler.UpdateUser)
-	userGroup.Delete("/:id", userHandler.DeleteUser)
-
+	usersGroup.Get("/", userHandler.GetUsers)
+	usersGroup.Get("/:id", userHandler.GetUserById)
+	usersGroup.Patch("/", userHandler.UpdateUser)
+	usersGroup.Delete("/:id", userHandler.DeleteUser)
 }
 
-func (h *UserHandler) GetUsers(c *fiber.Ctx) (err error) {
-	res := RespondOk(map[string]string{"success": "Hello world!"}, "Success")
-	return c.JSON(res)
+func (h *userHandler) GetUsers(c *fiber.Ctx) (err error) {
+	users, err := h.us.GetUsers()
+	if err != nil {
+		return c.JSON(RespondNotFound(err.Error(), "Failed"))
+	}
+
+	return c.JSON(RespondOk(users, "Success"))
 }
 
-func (h *UserHandler) GetUserById(c *fiber.Ctx) (err error) {
+func (h *userHandler) GetUserById(c *fiber.Ctx) error {
+	id, err := util.GetIdFromParams(c)
+	if err != nil {
+		return c.JSON(RespondBadRequest(err.Error(), "Failed"))
+	}
 
-	return
+	user, err := h.us.GetUser(*id)
+	if err != nil {
+		return c.JSON(RespondNotFound(user, err.Error()))
+	}
+
+	return c.JSON(RespondOk(user, "Success"))
 }
 
-func (h *UserHandler) UpdateUser(c *fiber.Ctx) (err error) {
+func (h *userHandler) UpdateUser(c *fiber.Ctx) error {
+	ur := new(data.UpdateUserRequest)
+	if err := c.BodyParser(ur); err != nil {
+		return c.JSON(RespondBadRequest(err.Error(), "Failure"))
+	}
 
-	return
+	user, err := h.us.UpdateUser(*ur)
+	if err != nil {
+		return c.JSON(RespondNotFound(err.Error(), "Failure"))
+	}
+
+	return c.JSON(RespondAccepted(user, "Success"))
 }
 
-func (h *UserHandler) DeleteUser(c *fiber.Ctx) (err error) {
+func (h *userHandler) DeleteUser(c *fiber.Ctx) error {
+	id, err := util.GetIdFromParams(c)
+	if err != nil {
+		return c.JSON(RespondBadRequest(err.Error(), "Failed"))
+	}
 
-	return
+	err = h.us.DeleteUser(*id)
+	if err != nil {
+		return c.JSON(RespondBadRequest(err.Error(), "Failed"))
+	}
+
+	return c.JSON(RespondNoContent("Deleted", "Success"))
 }
