@@ -2,9 +2,12 @@ package data
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/JueViGrace/bakery-go/internal/db"
+	"github.com/JueViGrace/bakery-go/internal/util"
+	"github.com/google/uuid"
 )
 
 type AuthStore interface {
@@ -51,19 +54,29 @@ type ChangeEmailRequest struct {
 // TODO: JWT
 
 func (s *authStore) SignIn(r SignInRequest) (*string, error) {
-	_, err := s.db.GetUserByEmail(s.ctx, r.Email)
+	user, err := s.db.GetUserByEmail(s.ctx, r.Email)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: check if is not deleted
-	// TODO: check password
+    if user.DeletedAt.Valid {
+        return nil, errors.New("this user was deleted")
+    }
+
+    if !util.ValidatePassword(r.Password, user.Password) {
+        return nil, errors.New("invalid credentials")
+    }
 
 	return nil, nil
 }
 
 func (s *authStore) SignUp(r SignUpRequest) (*string, error) {
-	_, err := s.db.CreateUser(s.ctx, *SignUpRequestToDbUser(r))
+	newUser, err := SignUpRequestToDbUser(r)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.db.CreateUser(s.ctx, *newUser)
 	if err != nil {
 		return nil, err
 	}
@@ -81,15 +94,24 @@ func (s *authStore) ChangeEmail(r ChangeEmailRequest) (*string, error) {
 	return nil, nil
 }
 
-func SignUpRequestToDbUser(r SignUpRequest) *db.CreateUserParams {
-	// TODO: BCRYPT
+func SignUpRequestToDbUser(r SignUpRequest) (*db.CreateUserParams, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+    pass, err := util.HashPassword(r.Password)
+    if err != nil {
+        return nil, err
+    }
 
 	return &db.CreateUserParams{
+		ID:        id,
 		FirstName: r.FirstName,
 		LastName:  r.LastName,
 		Email:     r.Email,
-		Password:  r.Password,
+		Password:  *pass,
 		BirthDate: r.BirthDate,
 		Phone:     r.Phone,
-	}
+	}, nil
 }

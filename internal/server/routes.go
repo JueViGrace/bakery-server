@@ -11,6 +11,7 @@ func (s *FiberServer) RegisterRoutes() {
 
 	s.UserRoutes()
     s.AuthRoutes()
+    s.ProductRoutes()
 }
 
 func (s *FiberServer) HealthRoute() {

@@ -8,25 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserStore interface {
-	GetUsers() ([]User, error)
-	GetUser(id uuid.UUID) (*User, error)
-	UpdateUser(ur UpdateUserRequest) (*User, error)
-	DeleteUser(id uuid.UUID) error
-}
-
-type userStore struct {
-	ctx context.Context
-	db  *db.Queries
-}
-
-func NewUserStore(ctx context.Context, db *db.Queries) UserStore {
-	return &userStore{
-		ctx: ctx,
-		db:  db,
-	}
-}
-
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	FirstName string    `json:"first_name"`
@@ -47,6 +28,25 @@ type UpdateUserRequest struct {
 	LastName  string    `json:"last_name"`
 	BirthDate time.Time `json:"birth_date"`
 	Phone     string    `json:"phone"`
+}
+
+type UserStore interface {
+	GetUsers() ([]User, error)
+	GetUser(id uuid.UUID) (*User, error)
+	UpdateUser(ur UpdateUserRequest) (*User, error)
+	DeleteUser(id uuid.UUID) error
+}
+
+type userStore struct {
+	ctx context.Context
+	db  *db.Queries
+}
+
+func NewUserStore(ctx context.Context, db *db.Queries) UserStore {
+	return &userStore{
+		ctx: ctx,
+		db:  db,
+	}
 }
 
 func (us *userStore) GetUsers() ([]User, error) {
@@ -80,7 +80,7 @@ func (us *userStore) GetUser(id uuid.UUID) (*User, error) {
 func (us *userStore) UpdateUser(ur UpdateUserRequest) (*User, error) {
 	user := new(User)
 
-	dbUser, err := us.db.UpdateUser(us.ctx, *URToDbUser(ur))
+	dbUser, err := us.db.UpdateUser(us.ctx, *newUpdateUserParams(ur))
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func dbUserToUser(du db.BakeryUser) *User {
 	}
 }
 
-func URToDbUser(ur UpdateUserRequest) *db.UpdateUserParams {
+func newUpdateUserParams(ur UpdateUserRequest) *db.UpdateUserParams {
 	return &db.UpdateUserParams{
 		ID:        ur.ID,
 		FirstName: ur.FirstName,

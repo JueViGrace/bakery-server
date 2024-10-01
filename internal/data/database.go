@@ -21,6 +21,7 @@ type Service interface {
 
 	UserStore() UserStore
 	AuthStore() AuthStore
+	ProductStore() ProductStore
 }
 
 type service struct {
@@ -71,6 +72,10 @@ func (s *service) UserStore() UserStore {
 
 func (s *service) AuthStore() AuthStore {
 	return NewAuthStore(s.ctx, s.queries)
+}
+
+func (s *service) ProductStore() ProductStore {
+	return NewProductStore(s.ctx, s.queries)
 }
 
 // Health checks the health of the database connection by pinging the database.
