@@ -1,9 +1,20 @@
 package util
 
 import (
+	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	_ "github.com/joho/godotenv/autoload"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	jwtSecret string = os.Getenv("JWT_SECRET")
 )
 
 func GetIdFromParams(ctx *fiber.Ctx) (*uuid.UUID, error) {
@@ -15,17 +26,74 @@ func GetIdFromParams(ctx *fiber.Ctx) (*uuid.UUID, error) {
 	return &id, nil
 }
 
-func HashPassword(password string) (*string, error) {
+func HashPassword(password string) (string, error) {
 	encpw, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-    pass := string(encpw)
+	pass := string(encpw)
 
-	return &pass, nil
+	return pass, nil
 }
 
 func ValidatePassword(reqPass string, encPass string) bool {
-    return bcrypt.CompareHashAndPassword([]byte(encPass), []byte(reqPass)) == nil
+	return bcrypt.CompareHashAndPassword([]byte(encPass), []byte(reqPass)) == nil
+}
+
+// TODO: make multiple roles?
+
+type userClaims struct {
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+}
+
+type JWTClaims struct {
+	userClaims `json:"user"`
+	jwt.RegisteredClaims
+}
+
+func CreateJWT(fullName string, email, string, role string) (string, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return "", err
+	}
+
+	sub := strings.ToLower(strings.Split(fullName, " ")[0])
+
+	claims := JWTClaims{
+		userClaims{
+			FullName: fullName,
+			Email:    email,
+			Role:     role,
+		},
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Issuer:    "BakeryServer",
+			Subject:   sub,
+			ID:        id.String(),
+			Audience: jwt.ClaimStrings{
+				"api",
+			},
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString(jwtSecret)
+}
+
+func ValidateJWT(tokenString string) (*jwt.Token, error) {
+	claims := new(JWTClaims)
+
+	return jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return []byte(jwtSecret), nil
+	})
+
 }

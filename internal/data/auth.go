@@ -11,10 +11,10 @@ import (
 )
 
 type AuthStore interface {
-	SignIn(r SignInRequest) (*string, error)
-	SignUp(r SignUpRequest) (*string, error)
-	RecoverPassword(r RecoverPasswordRequest) (*string, error)
-	ChangeEmail(r ChangeEmailRequest) (*string, error)
+	SignIn(r SignInRequest) (string, error)
+	SignUp(r SignUpRequest) (string, error)
+	RecoverPassword(r RecoverPasswordRequest) (string, error)
+	ChangeEmail(r ChangeEmailRequest) (string, error)
 }
 
 type authStore struct {
@@ -53,45 +53,45 @@ type ChangeEmailRequest struct {
 
 // TODO: JWT
 
-func (s *authStore) SignIn(r SignInRequest) (*string, error) {
+func (s *authStore) SignIn(r SignInRequest) (string, error) {
 	user, err := s.db.GetUserByEmail(s.ctx, r.Email)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-    if user.DeletedAt.Valid {
-        return nil, errors.New("this user was deleted")
-    }
+	if user.DeletedAt.Valid {
+		return "", errors.New("this user was deleted")
+	}
 
-    if !util.ValidatePassword(r.Password, user.Password) {
-        return nil, errors.New("invalid credentials")
-    }
+	if !util.ValidatePassword(r.Password, user.Password) {
+		return "", errors.New("invalid credentials")
+	}
 
-	return nil, nil
+	return "", nil
 }
 
-func (s *authStore) SignUp(r SignUpRequest) (*string, error) {
+func (s *authStore) SignUp(r SignUpRequest) (string, error) {
 	newUser, err := SignUpRequestToDbUser(r)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	_, err = s.db.CreateUser(s.ctx, *newUser)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	msg := "User created!"
 
-	return &msg, nil
+	return msg, nil
 }
 
-func (s *authStore) RecoverPassword(r RecoverPasswordRequest) (*string, error) {
-	return nil, nil
+func (s *authStore) RecoverPassword(r RecoverPasswordRequest) (string, error) {
+	return "", nil
 }
 
-func (s *authStore) ChangeEmail(r ChangeEmailRequest) (*string, error) {
-	return nil, nil
+func (s *authStore) ChangeEmail(r ChangeEmailRequest) (string, error) {
+	return "", nil
 }
 
 func SignUpRequestToDbUser(r SignUpRequest) (*db.CreateUserParams, error) {
@@ -100,17 +100,17 @@ func SignUpRequestToDbUser(r SignUpRequest) (*db.CreateUserParams, error) {
 		return nil, err
 	}
 
-    pass, err := util.HashPassword(r.Password)
-    if err != nil {
-        return nil, err
-    }
+	pass, err := util.HashPassword(r.Password)
+	if err != nil {
+		return nil, err
+	}
 
 	return &db.CreateUserParams{
 		ID:        id,
 		FirstName: r.FirstName,
 		LastName:  r.LastName,
 		Email:     r.Email,
-		Password:  *pass,
+		Password:  pass,
 		BirthDate: r.BirthDate,
 		Phone:     r.Phone,
 	}, nil
