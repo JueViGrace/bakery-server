@@ -37,7 +37,7 @@ func HashPassword(password string) (string, error) {
 	return pass, nil
 }
 
-func ValidatePassword(reqPass string, encPass string) bool {
+func ValidatePassword(reqPass, encPass string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(encPass), []byte(reqPass)) == nil
 }
 
@@ -54,7 +54,7 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
-func CreateJWT(fullName string, email, string, role string) (string, error) {
+func CreateJWT(fullName, email, role string) (string, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return "", err

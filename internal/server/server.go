@@ -7,6 +7,8 @@ import (
 
 	"github.com/JueViGrace/bakery-go/internal/data"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 type FiberServer struct {
@@ -32,9 +34,11 @@ func (s *FiberServer) Init() (err error) {
 	if err != nil {
 		return err
 	}
-    
-    s.RegisterRoutes()
-        
+
+	s.RegisterRoutes()
+	s.App.Use(cors.New())
+	s.App.Use(logger.New())
+
 	err = s.Listen(fmt.Sprintf(":%d", port))
 
 	return

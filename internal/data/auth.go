@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/JueViGrace/bakery-go/internal/db"
@@ -51,8 +52,6 @@ type ChangeEmailRequest struct {
 	Email string `json:"email"`
 }
 
-// TODO: JWT
-
 func (s *authStore) SignIn(r SignInRequest) (string, error) {
 	user, err := s.db.GetUserByEmail(s.ctx, r.Email)
 	if err != nil {
@@ -67,7 +66,12 @@ func (s *authStore) SignIn(r SignInRequest) (string, error) {
 		return "", errors.New("invalid credentials")
 	}
 
-	return "", nil
+	tokenString, err := util.CreateJWT(fmt.Sprintf("%s %s", user.FirstName, user.LastName), user.Email, user.Role)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
 func (s *authStore) SignUp(r SignUpRequest) (string, error) {
@@ -76,14 +80,17 @@ func (s *authStore) SignUp(r SignUpRequest) (string, error) {
 		return "", err
 	}
 
-	_, err = s.db.CreateUser(s.ctx, *newUser)
+	user, err := s.db.CreateUser(s.ctx, *newUser)
 	if err != nil {
 		return "", err
 	}
 
-	msg := "User created!"
+	tokenString, err := util.CreateJWT(fmt.Sprintf("%s %s", user.FirstName, user.LastName), user.Email, user.Role)
+	if err != nil {
+		return "", err
+	}
 
-	return msg, nil
+	return tokenString, nil
 }
 
 func (s *authStore) RecoverPassword(r RecoverPasswordRequest) (string, error) {

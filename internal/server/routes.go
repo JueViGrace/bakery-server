@@ -4,14 +4,15 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 )
 
 func (s *FiberServer) RegisterRoutes() {
 	s.HealthRoute()
 
 	s.UserRoutes()
-    s.AuthRoutes()
-    s.ProductRoutes()
+	s.AuthRoutes()
+	s.ProductRoutes()
 }
 
 func (s *FiberServer) HealthRoute() {
@@ -20,3 +21,9 @@ func (s *FiberServer) HealthRoute() {
 		return c.Status(res.Status).JSON(res)
 	})
 }
+
+func (s *FiberServer) MonitorRoute() {
+	s.App.Get("/api/metrics", monitor.New())
+}
+
+func (s *FiberServer) protectedRoute() {}
