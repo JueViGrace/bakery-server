@@ -32,7 +32,7 @@ type UpdateUserRequest struct {
 
 type UserStore interface {
 	GetUsers() ([]User, error)
-	GetUser(id uuid.UUID) (*User, error)
+	GetUserById(id uuid.UUID) (*User, error)
 	UpdateUser(ur UpdateUserRequest) (*User, error)
 	DeleteUser(id uuid.UUID) error
 }
@@ -64,7 +64,7 @@ func (us *userStore) GetUsers() ([]User, error) {
 	return users, nil
 }
 
-func (us *userStore) GetUser(id uuid.UUID) (*User, error) {
+func (us *userStore) GetUserById(id uuid.UUID) (*User, error) {
 	user := new(User)
 
 	dbUser, err := us.db.GetUserById(us.ctx, id)

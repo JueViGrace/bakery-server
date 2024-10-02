@@ -12,79 +12,68 @@ type AuthRoutes interface {
 	ChangeEmail(c *fiber.Ctx) error
 }
 
-type authHandler struct {
-	au data.AuthStore
+type AuthHandler struct {
+	as data.AuthStore
 }
 
-func NewAuthHandler(au data.AuthStore) AuthRoutes {
-	return &authHandler{
-		au: au,
+func NewAuthHandler(as data.AuthStore) AuthRoutes {
+	return &AuthHandler{
+		as: as,
 	}
 }
 
-func (s *FiberServer) AuthRoutes() {
-	authGroup := s.Group("/api/auth")
-
-	authHandler := NewAuthHandler(s.db.AuthStore())
-
-	authGroup.Post("/signIn", authHandler.SignIn)
-	authGroup.Post("/signUp", authHandler.SignUp)
-	authGroup.Post("/recover/password", authHandler.RecoverPassword)
-	authGroup.Post("/recover/email", authHandler.ChangeEmail)
-}
-
-func (h *authHandler) SignIn(c *fiber.Ctx) error {
+func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 	r := new(data.SignInRequest)
 	if err := c.BodyParser(r); err != nil {
-		return c.JSON(RespondBadRequest(err.Error(), "Failed"))
+		return RespondBadRequest(c, err.Error(), "Failed")
 	}
 
-	token, err := h.au.SignIn(*r)
+	token, err := h.as.SignIn(*r)
 	if err != nil {
-		return c.JSON(RespondNotFound(err.Error(), "Failed"))
+		return RespondNotFound(c, err.Error(), "Failed")
 	}
 
-	return c.JSON(RespondOk(token, "Success"))
+	return RespondOk(c, token, "Success")
 }
 
-func (h *authHandler) SignUp(c *fiber.Ctx) error {
+func (h *AuthHandler) SignUp(c *fiber.Ctx) error {
 	r := new(data.SignUpRequest)
 	if err := c.BodyParser(r); err != nil {
-		return c.JSON(RespondBadRequest(err.Error(), "Failed"))
+		return RespondBadRequest(c, err.Error(), "Failed")
 	}
 
-	token, err := h.au.SignUp(*r)
+	token, err := h.as.SignUp(*r)
 	if err != nil {
-		return c.JSON(RespondNotFound(err.Error(), "Failed"))
+		return RespondNotFound(c, err.Error(), "Failed")
 	}
 
-	return c.JSON(RespondCreated(token, "Success"))
+	return RespondCreated(c, token, "Success")
 }
 
-func (h *authHandler) RecoverPassword(c *fiber.Ctx) error {
+func (h *AuthHandler) RecoverPassword(c *fiber.Ctx) error {
 	r := new(data.RecoverPasswordRequest)
 	if err := c.BodyParser(r); err != nil {
-		return c.JSON(RespondBadRequest(err.Error(), "Failed"))
+		return RespondBadRequest(c, err.Error(), "Failed")
 	}
 
-	msg, err := h.au.RecoverPassword(*r)
+	msg, err := h.as.RecoverPassword(*r)
 	if err != nil {
-		return c.JSON(RespondNotFound(err.Error(), "Failed"))
+		return RespondNotFound(c, err.Error(), "Failed")
 	}
 
-	return c.JSON(RespondAccepted(msg, "Success"))
+	return RespondAccepted(c, msg, "Success")
 }
 
-func (h *authHandler) ChangeEmail(c *fiber.Ctx) error {
+func (h *AuthHandler) ChangeEmail(c *fiber.Ctx) error {
 	r := new(data.ChangeEmailRequest)
 	if err := c.BodyParser(r); err != nil {
-		return c.JSON(RespondBadRequest(err.Error(), "Failed"))
+		return RespondBadRequest(c, err.Error(), "Failed")
 	}
 
-	msg, err := h.au.ChangeEmail(*r)
+	msg, err := h.as.ChangeEmail(*r)
 	if err != nil {
-		return c.JSON(RespondNotFound(err.Error(), "Failed"))
+		return RespondNotFound(c, err.Error(), "Failed")
 	}
 
-	return c.JSON(RespondAccepted(msg, "Success"))
+	return RespondAccepted(c, msg, "Success")
 }

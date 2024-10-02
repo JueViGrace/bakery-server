@@ -93,6 +93,8 @@ func (s *authStore) SignUp(r SignUpRequest) (string, error) {
 	return tokenString, nil
 }
 
+// TODO: finish
+
 func (s *authStore) RecoverPassword(r RecoverPasswordRequest) (string, error) {
 	return "", nil
 }

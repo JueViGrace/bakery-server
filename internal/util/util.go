@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	_ "github.com/joho/godotenv/autoload"
@@ -17,8 +16,8 @@ var (
 	jwtSecret string = os.Getenv("JWT_SECRET")
 )
 
-func GetIdFromParams(ctx *fiber.Ctx) (*uuid.UUID, error) {
-	id, err := uuid.Parse(ctx.Params("id"))
+func GetIdFromParams(idString string) (*uuid.UUID, error) {
+	id, err := uuid.Parse(idString)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +49,7 @@ type userClaims struct {
 }
 
 type JWTClaims struct {
-	userClaims `json:"user"`
+	userClaims
 	jwt.RegisteredClaims
 }
 
