@@ -2,55 +2,37 @@ package data
 
 import (
 	"context"
-	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/db"
+	"github.com/JueViGrace/bakery-go/internal/database"
+	"github.com/JueViGrace/bakery-go/internal/types"
 	"github.com/google/uuid"
 )
 
-type User struct {
-	ID        uuid.UUID `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	BirthDate time.Time `json:"birth_date"`
-	Phone     string    `json:"phone"`
-	Role      string    `json:"-"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	DeletedAt time.Time `json:"-"`
-}
-
-type UpdateUserRequest struct {
-	ID        uuid.UUID `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	BirthDate time.Time `json:"birth_date"`
-	Phone     string    `json:"phone"`
-}
-
 type UserStore interface {
-	GetUsers() ([]User, error)
-	GetUserById(id uuid.UUID) (*User, error)
-	UpdateUser(ur UpdateUserRequest) (*User, error)
+	GetUsers() ([]types.User, error)
+	GetUserById(id uuid.UUID) (*types.User, error)
+	UpdateUser(ur types.UpdateUserRequest) (*types.User, error)
 	DeleteUser(id uuid.UUID) error
+}
+
+func (s *storage) UserStore() UserStore {
+	return NewUserStore(s.ctx, s.queries)
 }
 
 type userStore struct {
 	ctx context.Context
-	db  *db.Queries
+	db  *database.Queries
 }
 
-func NewUserStore(ctx context.Context, db *db.Queries) UserStore {
+func NewUserStore(ctx context.Context, db *database.Queries) UserStore {
 	return &userStore{
 		ctx: ctx,
 		db:  db,
 	}
 }
 
-func (us *userStore) GetUsers() ([]User, error) {
-	users := make([]User, 0)
+func (us *userStore) GetUsers() ([]types.User, error) {
+	users := make([]types.User, 0)
 
 	dbUsers, err := us.db.GetUsers(us.ctx)
 	if err != nil {
@@ -58,34 +40,34 @@ func (us *userStore) GetUsers() ([]User, error) {
 	}
 
 	for _, u := range dbUsers {
-		users = append(users, *dbUserToUser(u))
+		users = append(users, *types.DbUserToUser(u))
 	}
 
 	return users, nil
 }
 
-func (us *userStore) GetUserById(id uuid.UUID) (*User, error) {
-	user := new(User)
+func (us *userStore) GetUserById(id uuid.UUID) (*types.User, error) {
+	user := new(types.User)
 
 	dbUser, err := us.db.GetUserById(us.ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	user = dbUserToUser(dbUser)
+	user = types.DbUserToUser(dbUser)
 
 	return user, nil
 }
 
-func (us *userStore) UpdateUser(ur UpdateUserRequest) (*User, error) {
-	user := new(User)
+func (us *userStore) UpdateUser(ur types.UpdateUserRequest) (*types.User, error) {
+	user := new(types.User)
 
-	dbUser, err := us.db.UpdateUser(us.ctx, *newUpdateUserParams(ur))
+	dbUser, err := us.db.UpdateUser(us.ctx, *types.NewUpdateUserParams(ur))
 	if err != nil {
 		return nil, err
 	}
 
-	user = dbUserToUser(dbUser)
+	user = types.DbUserToUser(dbUser)
 
 	return user, nil
 }
@@ -97,30 +79,4 @@ func (us *userStore) DeleteUser(id uuid.UUID) error {
 	}
 
 	return nil
-}
-
-func dbUserToUser(du db.BakeryUser) *User {
-	return &User{
-		ID:        du.ID,
-		FirstName: du.FirstName,
-		LastName:  du.LastName,
-		Email:     du.Email,
-		Password:  du.Password,
-		BirthDate: du.BirthDate,
-		Phone:     du.Phone,
-		Role:      du.Role,
-		CreatedAt: du.CreatedAt.Time,
-		UpdatedAt: du.UpdatedAt.Time,
-		DeletedAt: du.DeletedAt.Time,
-	}
-}
-
-func newUpdateUserParams(ur UpdateUserRequest) *db.UpdateUserParams {
-	return &db.UpdateUserParams{
-		ID:        ur.ID,
-		FirstName: ur.FirstName,
-		LastName:  ur.LastName,
-		BirthDate: ur.BirthDate,
-		Phone:     ur.Phone,
-	}
 }

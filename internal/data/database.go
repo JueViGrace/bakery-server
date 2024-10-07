@@ -9,12 +9,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/db"
+	"github.com/JueViGrace/bakery-go/internal/database"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
 )
 
-type Service interface {
+type Storage interface {
 	Health() map[string]string
 
 	Close() error
@@ -24,40 +24,38 @@ type Service interface {
 	ProductStore() ProductStore
 }
 
-type service struct {
+type storage struct {
 	db      *sql.DB
-	queries *db.Queries
+	queries *database.Queries
 	ctx     context.Context
 }
 
 var (
 	ctx        = context.Background()
-	database   = os.Getenv("DB_DATABASE")
+	dbName     = os.Getenv("DB_DATABASE")
 	password   = os.Getenv("DB_PASSWORD")
 	username   = os.Getenv("DB_USERNAME")
 	port       = os.Getenv("DB_PORT")
 	host       = os.Getenv("DB_HOST")
 	schema     = os.Getenv("DB_SCHEMA")
-	dbInstance *service
-	queries    *db.Queries
+	dbInstance *storage
+	queries    *database.Queries
 )
 
-func NewService() Service {
-
+func NewStorage() Storage {
 	if dbInstance != nil {
 		return dbInstance
 	}
 
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, dbName, schema)
 	conn, err := sql.Open("pgx", connStr)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	queries = db.New(conn)
+	queries = database.New(conn)
 
-	dbInstance = &service{
+	dbInstance = &storage{
 		db:      conn,
 		queries: queries,
 		ctx:     ctx,
@@ -66,21 +64,9 @@ func NewService() Service {
 	return dbInstance
 }
 
-func (s *service) UserStore() UserStore {
-	return NewUserStore(s.ctx, s.queries)
-}
-
-func (s *service) AuthStore() AuthStore {
-	return NewAuthStore(s.ctx, s.queries)
-}
-
-func (s *service) ProductStore() ProductStore {
-	return NewProductStore(s.ctx, s.queries)
-}
-
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
-func (s *service) Health() map[string]string {
+func (s *storage) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -133,7 +119,7 @@ func (s *service) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *service) Close() error {
-	log.Printf("Disconnected from database: %s", database)
+func (s *storage) Close() error {
+	log.Printf("Disconnected from database: %s", dbName)
 	return s.db.Close()
 }

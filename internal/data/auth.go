@@ -4,55 +4,36 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/db"
+	"github.com/JueViGrace/bakery-go/internal/database"
+	"github.com/JueViGrace/bakery-go/internal/types"
 	"github.com/JueViGrace/bakery-go/internal/util"
-	"github.com/google/uuid"
 )
 
 type AuthStore interface {
-	SignIn(r SignInRequest) (string, error)
-	SignUp(r SignUpRequest) (string, error)
-	RecoverPassword(r RecoverPasswordRequest) (string, error)
-	ChangeEmail(r ChangeEmailRequest) (string, error)
+	SignIn(r types.SignInRequest) (string, error)
+	SignUp(r types.SignUpRequest) (string, error)
+	RecoverPassword(r types.RecoverPasswordRequest) (string, error)
+	ChangeEmail(r types.ChangeEmailRequest) (string, error)
+}
+
+func (s *storage) AuthStore() AuthStore {
+	return NewAuthStore(s.ctx, s.queries)
 }
 
 type authStore struct {
 	ctx context.Context
-	db  *db.Queries
+	db  *database.Queries
 }
 
-func NewAuthStore(ctx context.Context, db *db.Queries) AuthStore {
+func NewAuthStore(ctx context.Context, db *database.Queries) AuthStore {
 	return &authStore{
 		ctx: ctx,
 		db:  db,
 	}
 }
 
-type SignInRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type SignUpRequest struct {
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password"`
-	BirthDate time.Time `json:"birth_date"`
-	Phone     string    `json:"phone"`
-}
-
-type RecoverPasswordRequest struct {
-	Password string `json:"password"`
-}
-
-type ChangeEmailRequest struct {
-	Email string `json:"email"`
-}
-
-func (s *authStore) SignIn(r SignInRequest) (string, error) {
+func (s *authStore) SignIn(r types.SignInRequest) (string, error) {
 	user, err := s.db.GetUserByEmail(s.ctx, r.Email)
 	if err != nil {
 		return "", err
@@ -74,8 +55,8 @@ func (s *authStore) SignIn(r SignInRequest) (string, error) {
 	return tokenString, nil
 }
 
-func (s *authStore) SignUp(r SignUpRequest) (string, error) {
-	newUser, err := SignUpRequestToDbUser(r)
+func (s *authStore) SignUp(r types.SignUpRequest) (string, error) {
+	newUser, err := types.SignUpRequestToDbUser(r)
 	if err != nil {
 		return "", err
 	}
@@ -95,32 +76,10 @@ func (s *authStore) SignUp(r SignUpRequest) (string, error) {
 
 // TODO: finish
 
-func (s *authStore) RecoverPassword(r RecoverPasswordRequest) (string, error) {
+func (s *authStore) RecoverPassword(r types.RecoverPasswordRequest) (string, error) {
 	return "", nil
 }
 
-func (s *authStore) ChangeEmail(r ChangeEmailRequest) (string, error) {
+func (s *authStore) ChangeEmail(r types.ChangeEmailRequest) (string, error) {
 	return "", nil
-}
-
-func SignUpRequestToDbUser(r SignUpRequest) (*db.CreateUserParams, error) {
-	id, err := uuid.NewV7()
-	if err != nil {
-		return nil, err
-	}
-
-	pass, err := util.HashPassword(r.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	return &db.CreateUserParams{
-		ID:        id,
-		FirstName: r.FirstName,
-		LastName:  r.LastName,
-		Email:     r.Email,
-		Password:  pass,
-		BirthDate: r.BirthDate,
-		Phone:     r.Phone,
-	}, nil
 }

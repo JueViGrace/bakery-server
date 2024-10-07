@@ -4,14 +4,12 @@ import (
 	"fmt"
 
 	"github.com/JueViGrace/bakery-go/internal/server"
-	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
 	server := server.New()
 
-	err := server.Init()
-	if err != nil {
+	if err := server.Init(); err != nil {
 		panic(fmt.Sprintf("cannot start server: %s", err))
 	}
 }
