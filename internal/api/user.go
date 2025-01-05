@@ -3,7 +3,7 @@ package api
 import "github.com/JueViGrace/bakery-go/internal/handlers"
 
 func (a *api) UserRoutes() {
-	usersGroup := a.App.Group("/api/users", a.authMiddleware)
+	usersGroup := a.App.Group("/api/users", a.sessionMiddleware)
 
 	userHandler := handlers.NewUserHandler(a.db.UserStore())
 

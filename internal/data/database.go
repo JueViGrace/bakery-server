@@ -19,6 +19,7 @@ type Storage interface {
 
 	Close() error
 
+	SessionStore() SessionStore
 	UserStore() UserStore
 	AuthStore() AuthStore
 	ProductStore() ProductStore

@@ -10,7 +10,13 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-var jwtSecret string = os.Getenv("JWT_SECRET")
+var (
+	jwtSecret string           = os.Getenv("JWT_SECRET")
+	Issuer    string           = "BakeryServer"
+	Audience  jwt.ClaimStrings = jwt.ClaimStrings{
+		"api",
+	}
+)
 
 type userClaims struct {
 	UserId   uuid.UUID `json:"userId"`
@@ -44,12 +50,10 @@ func CreateJWT(id, fullName string) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
-			Issuer:    "BakeryServer",
+			Issuer:    Issuer,
 			Subject:   id,
 			ID:        tokenId.String(),
-			Audience: jwt.ClaimStrings{
-				"api",
-			},
+			Audience:  Audience,
 		},
 	}
 

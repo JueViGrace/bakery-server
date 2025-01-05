@@ -11,20 +11,19 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type AuthData struct {
+	token  *jwt.Token
+	claims util.JWTClaims
+}
+
 func (a *api) adminAuthMiddleware(c *fiber.Ctx) error {
-	token, err := a.extractJWTFromHeader(c)
+	data, err := a.extractJWTFromHeader(c)
 	if err != nil {
 		res := types.RespondUnauthorized(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
 	}
 
-	claims, ok := token.Claims.(util.JWTClaims)
-	if !ok {
-		res := types.RespondForbbiden("permission denied", "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	user, err := a.db.UserStore().GetUserById(&claims.UserId)
+	user, err := a.db.UserStore().GetUserById(&data.claims.UserId)
 
 	if user.Role != "admin" {
 		res := types.RespondForbbiden("permission denied", "Failed")
@@ -34,8 +33,14 @@ func (a *api) adminAuthMiddleware(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-func (a *api) authMiddleware(c *fiber.Ctx) error {
-	_, err := a.extractJWTFromHeader(c)
+func (a *api) sessionMiddleware(c *fiber.Ctx) error {
+	data, err := a.extractJWTFromHeader(c)
+	if err != nil {
+		res := types.RespondUnauthorized(err.Error(), "Failed")
+		return c.Status(res.Status).JSON(res)
+	}
+
+	_, err = a.db.SessionStore().GetTokenById(data.claims.UserId.String())
 	if err != nil {
 		res := types.RespondUnauthorized(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
@@ -44,68 +49,7 @@ func (a *api) authMiddleware(c *fiber.Ctx) error {
 	return c.Next()
 }
 
-func (a *api) checkUserIdParamMiddleware(c *fiber.Ctx) error {
-	id, err := util.GetIdFromParams(c.Params("id"))
-	if err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	token, err := a.extractJWTFromHeader(c)
-	if err != nil {
-		res := types.RespondUnauthorized(err.Error(), "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	claims := token.Claims.(util.JWTClaims)
-	// todo: role auth
-
-	tokenID, err := util.GetIdFromParams(claims.ID)
-	if err != nil {
-		res := types.RespondUnauthorized("permission denied", "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	if tokenID != id {
-		res := types.RespondForbbiden("forbidden resource", "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	return c.Next()
-}
-
-func (a *api) checkUpdateUserMiddleware(c *fiber.Ctx) error {
-	ur := new(types.UpdateUserRequest)
-
-	if err := c.BodyParser(ur); err != nil {
-		res := types.RespondBadRequest("permission denied", "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	token, err := a.extractJWTFromHeader(c)
-	if err != nil {
-		res := types.RespondUnauthorized(err.Error(), "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	claims := token.Claims.(util.JWTClaims)
-	// todo: role auth
-
-	tokenID, err := util.GetIdFromParams(claims.ID)
-	if err != nil {
-		res := types.RespondUnauthorized("permission denied", "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	if tokenID != &ur.ID {
-		res := types.RespondForbbiden("forbidden resource", "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	return c.Next()
-}
-
-func (a *api) extractJWTFromHeader(c *fiber.Ctx) (*jwt.Token, error) {
+func (a *api) extractJWTFromHeader(c *fiber.Ctx) (*AuthData, error) {
 	header := strings.Join(c.GetReqHeaders()["Authorization"], "")
 
 	if !strings.HasPrefix(header, "Bearer") {
@@ -135,5 +79,12 @@ func (a *api) extractJWTFromHeader(c *fiber.Ctx) (*jwt.Token, error) {
 		return nil, errors.New("permision denied")
 	}
 
-	return token, nil
+	if claims.Issuer != util.Issuer {
+		return nil, errors.New("permision denied")
+	}
+
+	return &AuthData{
+		token:  token,
+		claims: claims,
+	}, nil
 }
