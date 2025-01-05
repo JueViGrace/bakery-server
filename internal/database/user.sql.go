@@ -7,35 +7,45 @@ package database
 
 import (
 	"context"
-	"time"
-
-	"github.com/google/uuid"
+	"database/sql"
 )
 
 const createUser = `-- name: CreateUser :one
+;
+
 INSERT INTO bakery_user (
-        id,
-        first_name,
-        last_name,
-        email,
-        password,
-        birth_date,
-        phone,
-        created_at,
-        updated_at
-    )
-VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
-RETURNING id, first_name, last_name, email, password, birth_date, phone, role, created_at, updated_at, deleted_at
+    id,
+    first_name,
+    last_name,
+    username,
+    email,
+    password,
+    phone_number,
+    birth_date,
+    address1,
+    address2,
+    gender,
+    created_at,
+    updated_at
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, first_name, last_name, username, email, password, phone_number, birth_date, address1, address2, gender, role, created_at, updated_at, deleted_at
 `
 
 type CreateUserParams struct {
-	ID        uuid.UUID
-	FirstName string
-	LastName  string
-	Email     string
-	Password  string
-	BirthDate time.Time
-	Phone     string
+	ID          string
+	FirstName   string
+	LastName    string
+	Username    string
+	Email       string
+	Password    string
+	PhoneNumber string
+	BirthDate   string
+	Address1    string
+	Address2    string
+	Gender      string
+	CreatedAt   string
+	UpdatedAt   string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (BakeryUser, error) {
@@ -43,20 +53,30 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (BakeryU
 		arg.ID,
 		arg.FirstName,
 		arg.LastName,
+		arg.Username,
 		arg.Email,
 		arg.Password,
+		arg.PhoneNumber,
 		arg.BirthDate,
-		arg.Phone,
+		arg.Address1,
+		arg.Address2,
+		arg.Gender,
+		arg.CreatedAt,
+		arg.UpdatedAt,
 	)
 	var i BakeryUser
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
 		&i.LastName,
+		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.PhoneNumber,
 		&i.BirthDate,
-		&i.Phone,
+		&i.Address1,
+		&i.Address2,
+		&i.Gender,
 		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -66,20 +86,27 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (BakeryU
 }
 
 const deleteUser = `-- name: DeleteUser :exec
-UPDATE bakery_user
-SET deleted_at = NOW()
-WHERE id = $1
+UPDATE bakery_user SET 
+    deleted_at = ?
+WHERE id = ?
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUser, id)
+type DeleteUserParams struct {
+	DeletedAt sql.NullString
+	ID        string
+}
+
+func (q *Queries) DeleteUser(ctx context.Context, arg DeleteUserParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, arg.DeletedAt, arg.ID)
 	return err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, email, password, birth_date, phone, role, created_at, updated_at, deleted_at
-FROM bakery_user
-WHERE email = $1
+;
+
+select id, first_name, last_name, username, email, password, phone_number, birth_date, address1, address2, gender, role, created_at, updated_at, deleted_at
+from bakery_user
+where email = ?
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (BakeryUser, error) {
@@ -89,10 +116,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (BakeryUser,
 		&i.ID,
 		&i.FirstName,
 		&i.LastName,
+		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.PhoneNumber,
 		&i.BirthDate,
-		&i.Phone,
+		&i.Address1,
+		&i.Address2,
+		&i.Gender,
 		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -102,22 +133,28 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (BakeryUser,
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, first_name, last_name, email, password, birth_date, phone, role, created_at, updated_at, deleted_at
-FROM bakery_user
-WHERE id = $1
+;
+
+select id, first_name, last_name, username, email, password, phone_number, birth_date, address1, address2, gender, role, created_at, updated_at, deleted_at
+from bakery_user
+where id = ?
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (BakeryUser, error) {
+func (q *Queries) GetUserById(ctx context.Context, id string) (BakeryUser, error) {
 	row := q.db.QueryRowContext(ctx, getUserById, id)
 	var i BakeryUser
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
 		&i.LastName,
+		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.PhoneNumber,
 		&i.BirthDate,
-		&i.Phone,
+		&i.Address1,
+		&i.Address2,
+		&i.Gender,
 		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -127,8 +164,8 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (BakeryUser, er
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, first_name, last_name, email, password, birth_date, phone, role, created_at, updated_at, deleted_at
-FROM bakery_user
+select id, first_name, last_name, username, email, password, phone_number, birth_date, address1, address2, gender, role, created_at, updated_at, deleted_at
+from bakery_user
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]BakeryUser, error) {
@@ -144,10 +181,14 @@ func (q *Queries) GetUsers(ctx context.Context) ([]BakeryUser, error) {
 			&i.ID,
 			&i.FirstName,
 			&i.LastName,
+			&i.Username,
 			&i.Email,
 			&i.Password,
+			&i.PhoneNumber,
 			&i.BirthDate,
-			&i.Phone,
+			&i.Address1,
+			&i.Address2,
+			&i.Gender,
 			&i.Role,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -166,31 +207,79 @@ func (q *Queries) GetUsers(ctx context.Context) ([]BakeryUser, error) {
 	return items, nil
 }
 
+const updateEmail = `-- name: UpdateEmail :one
+UPDATE bakery_user SET
+    email = ?,
+    updated_at = ?
+WHERE id = ?
+RETURNING id, first_name, last_name, username, email, password, phone_number, birth_date, address1, address2, gender, role, created_at, updated_at, deleted_at
+`
+
+type UpdateEmailParams struct {
+	Email     string
+	UpdatedAt string
+	ID        string
+}
+
+func (q *Queries) UpdateEmail(ctx context.Context, arg UpdateEmailParams) (BakeryUser, error) {
+	row := q.db.QueryRowContext(ctx, updateEmail, arg.Email, arg.UpdatedAt, arg.ID)
+	var i BakeryUser
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Username,
+		&i.Email,
+		&i.Password,
+		&i.PhoneNumber,
+		&i.BirthDate,
+		&i.Address1,
+		&i.Address2,
+		&i.Gender,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const updateUser = `-- name: UpdateUser :one
-UPDATE bakery_user
-SET first_name = $1,
-    last_name = $2,
-    birth_date = $3,
-    phone = $4,
-    updated_at = NOW()
-WHERE id = $5
-RETURNING id, first_name, last_name, email, password, birth_date, phone, role, created_at, updated_at, deleted_at
+UPDATE bakery_user SET
+    first_name = ?,
+    last_name = ?,
+    phone_number = ?,
+    birth_date = ?,
+    address1 = ?,
+    address2 = ?,
+    gender = ?,
+    updated_at = ?
+WHERE id = ?
+RETURNING id, first_name, last_name, username, email, password, phone_number, birth_date, address1, address2, gender, role, created_at, updated_at, deleted_at
 `
 
 type UpdateUserParams struct {
-	FirstName string
-	LastName  string
-	BirthDate time.Time
-	Phone     string
-	ID        uuid.UUID
+	FirstName   string
+	LastName    string
+	PhoneNumber string
+	BirthDate   string
+	Address1    string
+	Address2    string
+	Gender      string
+	UpdatedAt   string
+	ID          string
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (BakeryUser, error) {
 	row := q.db.QueryRowContext(ctx, updateUser,
 		arg.FirstName,
 		arg.LastName,
+		arg.PhoneNumber,
 		arg.BirthDate,
-		arg.Phone,
+		arg.Address1,
+		arg.Address2,
+		arg.Gender,
+		arg.UpdatedAt,
 		arg.ID,
 	)
 	var i BakeryUser
@@ -198,10 +287,51 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (BakeryU
 		&i.ID,
 		&i.FirstName,
 		&i.LastName,
+		&i.Username,
 		&i.Email,
 		&i.Password,
+		&i.PhoneNumber,
 		&i.BirthDate,
-		&i.Phone,
+		&i.Address1,
+		&i.Address2,
+		&i.Gender,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const updateUsername = `-- name: UpdateUsername :one
+UPDATE bakery_user SET
+    username = ?,
+    updated_at = ?
+WHERE id = ?
+RETURNING id, first_name, last_name, username, email, password, phone_number, birth_date, address1, address2, gender, role, created_at, updated_at, deleted_at
+`
+
+type UpdateUsernameParams struct {
+	Username  string
+	UpdatedAt string
+	ID        string
+}
+
+func (q *Queries) UpdateUsername(ctx context.Context, arg UpdateUsernameParams) (BakeryUser, error) {
+	row := q.db.QueryRowContext(ctx, updateUsername, arg.Username, arg.UpdatedAt, arg.ID)
+	var i BakeryUser
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Username,
+		&i.Email,
+		&i.Password,
+		&i.PhoneNumber,
+		&i.BirthDate,
+		&i.Address1,
+		&i.Address2,
+		&i.Gender,
 		&i.Role,
 		&i.CreatedAt,
 		&i.UpdatedAt,

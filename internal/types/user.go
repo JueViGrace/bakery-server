@@ -7,50 +7,81 @@ import (
 	"github.com/google/uuid"
 )
 
-type User struct {
-	ID        uuid.UUID `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	BirthDate time.Time `json:"birth_date"`
-	Phone     string    `json:"phone"`
-	Role      string    `json:"-"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	DeletedAt time.Time `json:"-"`
+type UserResponse struct {
+	ID          uuid.UUID `json:"id"`
+	FirstName   string    `json:"firstName"`
+	LastName    string    `json:"lastName"`
+	Username    string    `json:"username"`
+	Email       string    `json:"email"`
+	Password    string    `json:"-"`
+	PhoneNumber string    `json:"phoneNumber"`
+	BirthDate   time.Time `json:"birthDate"`
+	Address1    string    `json:"address1"`
+	Address2    string    `json:"address2"`
+	Gender      string    `json:"gender"`
+	Role        string    `json:"-"`
+	CreatedAt   string    `json:"created_at"`
+	UpdatedAt   string    `json:"updated_at"`
+	DeletedAt   string    `json:"-"`
 }
 
 type UpdateUserRequest struct {
-	ID        uuid.UUID `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	BirthDate time.Time `json:"birth_date"`
-	Phone     string    `json:"phone"`
+	ID          uuid.UUID `json:"id"`
+	FirstName   string    `json:"firstName"`
+	LastName    string    `json:"lastName"`
+	PhoneNumber string    `json:"phoneNumber"`
+	BirthDate   time.Time `json:"birthDate"`
+	Address1    string    `json:"address1"`
+	Address2    string    `json:"address2"`
+	Gender      string    `json:"gender"`
 }
 
-func DbUserToUser(du database.BakeryUser) *User {
-	return &User{
-		ID:        du.ID,
-		FirstName: du.FirstName,
-		LastName:  du.LastName,
-		Email:     du.Email,
-		Password:  du.Password,
-		BirthDate: du.BirthDate,
-		Phone:     du.Phone,
-		Role:      du.Role,
-		CreatedAt: du.CreatedAt.Time,
-		UpdatedAt: du.UpdatedAt.Time,
-		DeletedAt: du.DeletedAt.Time,
+type ChangeEmailRequest struct {
+	Email string `json:"email"`
+}
+
+func DbUserToUser(db *database.BakeryUser) (user *UserResponse, err error) {
+	id, err := uuid.Parse(db.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	birthDate, err := time.Parse(time.DateTime, db.BirthDate)
+	if err != nil {
+		return nil, err
+	}
+
+	user = &UserResponse{
+		ID:          id,
+		FirstName:   db.FirstName,
+		LastName:    db.LastName,
+		Username:    db.Username,
+		Email:       db.Email,
+		Password:    db.Password,
+		PhoneNumber: db.PhoneNumber,
+		BirthDate:   birthDate,
+		Address1:    db.Address1,
+		Address2:    db.Address2,
+		Gender:      db.Gender,
+		Role:        db.Role,
+		CreatedAt:   db.CreatedAt,
+		UpdatedAt:   db.UpdatedAt,
+		DeletedAt:   db.DeletedAt.String,
+	}
+
+	return
 }
 
-func NewUpdateUserParams(ur UpdateUserRequest) *database.UpdateUserParams {
+func NewUpdateUserParams(r *UpdateUserRequest) *database.UpdateUserParams {
 	return &database.UpdateUserParams{
-		ID:        ur.ID,
-		FirstName: ur.FirstName,
-		LastName:  ur.LastName,
-		BirthDate: ur.BirthDate,
-		Phone:     ur.Phone,
+		FirstName:   r.FirstName,
+		LastName:    r.LastName,
+		PhoneNumber: r.PhoneNumber,
+		BirthDate:   r.BirthDate.String(),
+		Address1:    r.Address1,
+		Address2:    r.Address2,
+		Gender:      r.Gender,
+		UpdatedAt:   time.Now().UTC().String(),
+		ID:          r.ID.String(),
 	}
 }

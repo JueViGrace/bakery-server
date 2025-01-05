@@ -11,10 +11,10 @@ import (
 )
 
 type AuthStore interface {
-	SignIn(r types.SignInRequest) (string, error)
-	SignUp(r types.SignUpRequest) (string, error)
-	RecoverPassword(r types.RecoverPasswordRequest) (string, error)
-	ChangeEmail(r types.ChangeEmailRequest) (string, error)
+	SignIn(r *types.SignInRequest) (*types.AuthResponse, error)
+	SignUp(r *types.SignUpRequest) (*types.AuthResponse, error)
+	RecoverPassword(r *types.RecoverPasswordRequest) (string, error)
+	Refresh(r *types.RefreshRequest) (*types.AuthResponse, error)
 }
 
 func (s *storage) AuthStore() AuthStore {
@@ -33,53 +33,57 @@ func NewAuthStore(ctx context.Context, db *database.Queries) AuthStore {
 	}
 }
 
-func (s *authStore) SignIn(r types.SignInRequest) (string, error) {
+func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) {
 	user, err := s.db.GetUserByEmail(s.ctx, r.Email)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if user.DeletedAt.Valid {
-		return "", errors.New("this user was deleted")
+		return nil, errors.New("this user was deleted")
 	}
 
 	if !util.ValidatePassword(r.Password, user.Password) {
-		return "", errors.New("invalid credentials")
+		return nil, errors.New("invalid credentials")
 	}
 
-	tokenString, err := util.CreateJWT(fmt.Sprintf("%s %s", user.FirstName, user.LastName), user.Email, user.Role)
+	tokenString, err := util.CreateJWT(user.ID, fmt.Sprintf("%s %s", user.FirstName, user.LastName))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return tokenString, nil
+	res := types.NewAuthResponse(tokenString, "")
+
+	return res, nil
 }
 
-func (s *authStore) SignUp(r types.SignUpRequest) (string, error) {
+func (s *authStore) SignUp(r *types.SignUpRequest) (*types.AuthResponse, error) {
 	newUser, err := types.SignUpRequestToDbUser(r)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	user, err := s.db.CreateUser(s.ctx, *newUser)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	tokenString, err := util.CreateJWT(fmt.Sprintf("%s %s", user.FirstName, user.LastName), user.Email, user.Role)
+	tokenString, err := util.CreateJWT(user.ID, fmt.Sprintf("%s %s", user.FirstName, user.LastName))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return tokenString, nil
+	res := types.NewAuthResponse(tokenString, "")
+
+	return res, nil
 }
 
 // TODO: finish
 
-func (s *authStore) RecoverPassword(r types.RecoverPasswordRequest) (string, error) {
+func (s *authStore) RecoverPassword(r *types.RecoverPasswordRequest) (string, error) {
 	return "", nil
 }
 
-func (s *authStore) ChangeEmail(r types.ChangeEmailRequest) (string, error) {
-	return "", nil
+func (s *authStore) Refresh(r *types.RefreshRequest) (*types.AuthResponse, error) {
+	return &types.AuthResponse{}, nil
 }

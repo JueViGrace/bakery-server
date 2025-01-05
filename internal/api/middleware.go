@@ -18,7 +18,15 @@ func (a *api) adminAuthMiddleware(c *fiber.Ctx) error {
 		return c.Status(res.Status).JSON(res)
 	}
 
-	if claims, ok := token.Claims.(util.JWTClaims); !ok || claims.Role != "admin" {
+	claims, ok := token.Claims.(util.JWTClaims)
+	if !ok {
+		res := types.RespondForbbiden("permission denied", "Failed")
+		return c.Status(res.Status).JSON(res)
+	}
+
+	user, err := a.db.UserStore().GetUserById(&claims.UserId)
+
+	if user.Role != "admin" {
 		res := types.RespondForbbiden("permission denied", "Failed")
 		return c.Status(res.Status).JSON(res)
 	}
@@ -50,9 +58,7 @@ func (a *api) checkUserIdParamMiddleware(c *fiber.Ctx) error {
 	}
 
 	claims := token.Claims.(util.JWTClaims)
-	if claims.Role == "admin" {
-		return c.Next()
-	}
+	// todo: role auth
 
 	tokenID, err := util.GetIdFromParams(claims.ID)
 	if err != nil {
@@ -83,9 +89,7 @@ func (a *api) checkUpdateUserMiddleware(c *fiber.Ctx) error {
 	}
 
 	claims := token.Claims.(util.JWTClaims)
-	if claims.Role == "admin" {
-		return c.Next()
-	}
+	// todo: role auth
 
 	tokenID, err := util.GetIdFromParams(claims.ID)
 	if err != nil {

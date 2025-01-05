@@ -42,7 +42,7 @@ func (h *userHandler) GetUserById(c *fiber.Ctx) error {
 		return c.Status(res.Status).JSON(res)
 	}
 
-	user, err := h.db.GetUserById(*id)
+	user, err := h.db.GetUserById(id)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
@@ -53,13 +53,13 @@ func (h *userHandler) GetUserById(c *fiber.Ctx) error {
 }
 
 func (h *userHandler) UpdateUser(c *fiber.Ctx) error {
-	ur := new(types.UpdateUserRequest)
-	if err := c.BodyParser(ur); err != nil {
+	r := new(types.UpdateUserRequest)
+	if err := c.BodyParser(r); err != nil {
 		res := types.RespondBadRequest(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
 	}
 
-	user, err := h.db.UpdateUser(*ur)
+	user, err := h.db.UpdateUser(r)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
@@ -76,7 +76,7 @@ func (h *userHandler) DeleteUser(c *fiber.Ctx) error {
 		return c.Status(res.Status).JSON(res)
 	}
 
-	err = h.db.DeleteUser(*id)
+	err = h.db.DeleteUser(id)
 	if err != nil {
 		res := types.RespondBadRequest(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)

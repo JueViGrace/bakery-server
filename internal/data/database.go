@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/JueViGrace/bakery-go/internal/database"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Storage interface {
@@ -32,12 +32,7 @@ type storage struct {
 
 var (
 	ctx        = context.Background()
-	dbName     = os.Getenv("DB_DATABASE")
-	password   = os.Getenv("DB_PASSWORD")
-	username   = os.Getenv("DB_USERNAME")
-	port       = os.Getenv("DB_PORT")
-	host       = os.Getenv("DB_HOST")
-	schema     = os.Getenv("DB_SCHEMA")
+	dbUrl      = os.Getenv("DB_URL")
 	dbInstance *storage
 	queries    *database.Queries
 )
@@ -47,8 +42,7 @@ func NewStorage() Storage {
 		return dbInstance
 	}
 
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, dbName, schema)
-	conn, err := sql.Open("pgx", connStr)
+	conn, err := sql.Open("sqlite3", dbUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -120,6 +114,6 @@ func (s *storage) Health() map[string]string {
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
 func (s *storage) Close() error {
-	log.Printf("Disconnected from database: %s", dbName)
+	log.Printf("Disconnected from database: %s", dbUrl)
 	return s.db.Close()
 }

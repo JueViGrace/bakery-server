@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/JueViGrace/bakery-go/internal/database"
 	"github.com/JueViGrace/bakery-go/internal/types"
@@ -9,10 +11,10 @@ import (
 )
 
 type UserStore interface {
-	GetUsers() ([]types.User, error)
-	GetUserById(id uuid.UUID) (*types.User, error)
-	UpdateUser(ur types.UpdateUserRequest) (*types.User, error)
-	DeleteUser(id uuid.UUID) error
+	GetUsers() ([]*types.UserResponse, error)
+	GetUserById(id *uuid.UUID) (*types.UserResponse, error)
+	UpdateUser(r *types.UpdateUserRequest) (*types.UserResponse, error)
+	DeleteUser(id *uuid.UUID) error
 }
 
 func (s *storage) UserStore() UserStore {
@@ -31,8 +33,8 @@ func NewUserStore(ctx context.Context, db *database.Queries) UserStore {
 	}
 }
 
-func (us *userStore) GetUsers() ([]types.User, error) {
-	users := make([]types.User, 0)
+func (us *userStore) GetUsers() ([]*types.UserResponse, error) {
+	users := make([]*types.UserResponse, 0)
 
 	dbUsers, err := us.db.GetUsers(us.ctx)
 	if err != nil {
@@ -40,40 +42,56 @@ func (us *userStore) GetUsers() ([]types.User, error) {
 	}
 
 	for _, u := range dbUsers {
-		users = append(users, *types.DbUserToUser(u))
+		user, err := types.DbUserToUser(&u)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
 	}
 
 	return users, nil
 }
 
-func (us *userStore) GetUserById(id uuid.UUID) (*types.User, error) {
-	user := new(types.User)
+func (us *userStore) GetUserById(id *uuid.UUID) (*types.UserResponse, error) {
+	user := new(types.UserResponse)
 
-	dbUser, err := us.db.GetUserById(us.ctx, id)
+	dbUser, err := us.db.GetUserById(us.ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	user = types.DbUserToUser(dbUser)
-
-	return user, nil
-}
-
-func (us *userStore) UpdateUser(ur types.UpdateUserRequest) (*types.User, error) {
-	user := new(types.User)
-
-	dbUser, err := us.db.UpdateUser(us.ctx, *types.NewUpdateUserParams(ur))
+	user, err = types.DbUserToUser(&dbUser)
 	if err != nil {
 		return nil, err
 	}
 
-	user = types.DbUserToUser(dbUser)
+	return user, nil
+}
+
+func (us *userStore) UpdateUser(r *types.UpdateUserRequest) (*types.UserResponse, error) {
+	user := new(types.UserResponse)
+
+	dbUser, err := us.db.UpdateUser(us.ctx, *types.NewUpdateUserParams(r))
+	if err != nil {
+		return nil, err
+	}
+
+	user, err = types.DbUserToUser(&dbUser)
+	if err != nil {
+		return nil, err
+	}
 
 	return user, nil
 }
 
-func (us *userStore) DeleteUser(id uuid.UUID) error {
-	err := us.db.DeleteUser(us.ctx, id)
+func (us *userStore) DeleteUser(id *uuid.UUID) error {
+	err := us.db.DeleteUser(us.ctx, database.DeleteUserParams{
+		DeletedAt: sql.NullString{
+			String: time.Now().UTC().String(),
+			Valid:  true,
+		},
+		ID: id.String(),
+	})
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,6 @@ func (a *api) AuthRoutes() {
 
 	authGroup.Post("/signIn", authHandler.SignIn)
 	authGroup.Post("/signUp", authHandler.SignUp)
+	authGroup.Post("/refresh", authHandler.SignUp)
 	authGroup.Post("/recover/password", authHandler.RecoverPassword)
-	authGroup.Post("/recover/email", authHandler.ChangeEmail)
 }

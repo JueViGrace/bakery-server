@@ -1,43 +1,68 @@
 -- name: GetUsers :many
-SELECT *
-FROM bakery_user;
+select *
+from bakery_user
+;
 
 -- name: GetUserById :one
-SELECT *
-FROM bakery_user
-WHERE id = $1;
+select *
+from bakery_user
+where id = ?
+;
 
 -- name: GetUserByEmail :one
-SELECT *
-FROM bakery_user
-WHERE email = $1;
+select *
+from bakery_user
+where email = ?
+;
 
 -- name: CreateUser :one
 INSERT INTO bakery_user (
-        id,
-        first_name,
-        last_name,
-        email,
-        password,
-        birth_date,
-        phone,
-        created_at,
-        updated_at
-    )
-VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+    id,
+    first_name,
+    last_name,
+    username,
+    email,
+    password,
+    phone_number,
+    birth_date,
+    address1,
+    address2,
+    gender,
+    created_at,
+    updated_at
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: UpdateUser :one
-UPDATE bakery_user
-SET first_name = $1,
-    last_name = $2,
-    birth_date = $3,
-    phone = $4,
-    updated_at = NOW()
-WHERE id = $5
+UPDATE bakery_user SET
+    first_name = ?,
+    last_name = ?,
+    phone_number = ?,
+    birth_date = ?,
+    address1 = ?,
+    address2 = ?,
+    gender = ?,
+    updated_at = ?
+WHERE id = ?
+RETURNING *;
+
+-- name: UpdateEmail :one
+UPDATE bakery_user SET
+    email = ?,
+    updated_at = ?
+WHERE id = ?
+RETURNING *;
+
+-- name: UpdateUsername :one
+UPDATE bakery_user SET
+    username = ?,
+    updated_at = ?
+WHERE id = ?
 RETURNING *;
 
 -- name: DeleteUser :exec
-UPDATE bakery_user
-SET deleted_at = NOW()
-WHERE id = $1;
+UPDATE bakery_user SET 
+    deleted_at = ?
+WHERE id = ?;
+

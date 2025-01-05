@@ -7,8 +7,8 @@ func (a *api) UserRoutes() {
 
 	userHandler := handlers.NewUserHandler(a.db.UserStore())
 
-	usersGroup.Get("/", a.adminAuthMiddleware, userHandler.GetUsers)
-	usersGroup.Get("/:id", a.checkUserIdParamMiddleware, userHandler.GetUserById)
-	usersGroup.Patch("/", a.checkUpdateUserMiddleware, userHandler.UpdateUser)
-	usersGroup.Delete("/:id", a.checkUserIdParamMiddleware, userHandler.DeleteUser)
+	usersGroup.Get("/", userHandler.GetUsers)
+	usersGroup.Get("/:id", userHandler.GetUserById)
+	usersGroup.Patch("/", userHandler.UpdateUser)
+	usersGroup.Delete("/:id", userHandler.DeleteUser)
 }

@@ -9,8 +9,8 @@ type APIResponse struct {
 	Status      int       `json:"status"`
 	Description string    `json:"description"`
 	Data        any       `json:"data"`
-	Time        time.Time `json:"time"`
 	Message     string    `json:"message"`
+	Time        time.Time `json:"time"`
 }
 
 func NewAPIResponse(status int, description string, data any, message string) *APIResponse {
@@ -18,8 +18,8 @@ func NewAPIResponse(status int, description string, data any, message string) *A
 		Status:      status,
 		Description: description,
 		Data:        data,
-		Time:        time.Now().UTC(),
 		Message:     message,
+		Time:        time.Now().UTC(),
 	}
 }
 

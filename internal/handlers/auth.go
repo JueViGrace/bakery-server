@@ -10,7 +10,7 @@ type AuthHandler interface {
 	SignIn(c *fiber.Ctx) error
 	SignUp(c *fiber.Ctx) error
 	RecoverPassword(c *fiber.Ctx) error
-	ChangeEmail(c *fiber.Ctx) error
+	Refresh(c *fiber.Ctx) error
 }
 
 type authHandler struct {
@@ -30,7 +30,7 @@ func (h *authHandler) SignIn(c *fiber.Ctx) error {
 		return c.Status(res.Status).JSON(res)
 	}
 
-	token, err := h.db.SignIn(*r)
+	token, err := h.db.SignIn(r)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
@@ -47,7 +47,7 @@ func (h *authHandler) SignUp(c *fiber.Ctx) error {
 		return c.Status(res.Status).JSON(res)
 	}
 
-	token, err := h.db.SignUp(*r)
+	token, err := h.db.SignUp(r)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
@@ -64,7 +64,7 @@ func (h *authHandler) RecoverPassword(c *fiber.Ctx) error {
 		return c.Status(res.Status).JSON(res)
 	}
 
-	msg, err := h.db.RecoverPassword(*r)
+	msg, err := h.db.RecoverPassword(r)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
@@ -74,14 +74,14 @@ func (h *authHandler) RecoverPassword(c *fiber.Ctx) error {
 	return c.Status(res.Status).JSON(res)
 }
 
-func (h *authHandler) ChangeEmail(c *fiber.Ctx) error {
-	r := new(types.ChangeEmailRequest)
+func (h *authHandler) Refresh(c *fiber.Ctx) error {
+	r := new(types.RefreshRequest)
 	if err := c.BodyParser(r); err != nil {
 		res := types.RespondBadRequest(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
 	}
 
-	msg, err := h.db.ChangeEmail(*r)
+	msg, err := h.db.Refresh(r)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)

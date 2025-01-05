@@ -6,52 +6,65 @@ package database
 
 import (
 	"database/sql"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type BakeryOrder struct {
-	ID            uuid.UUID
-	TotalAmount   float32
+	ID            string
+	TotalAmount   float64
 	PaymentMethod string
 	Status        string
-	UserID        uuid.UUID
-	CreatedAt     sql.NullTime
-	UpdatedAt     sql.NullTime
-	DeletedAt     sql.NullTime
+	UserID        string
+	CreatedAt     string
+	UpdatedAt     string
 }
 
 type BakeryOrderProduct struct {
-	OrderID   uuid.UUID
-	ProductID uuid.UUID
-	Price     float32
-	Quantity  int32
+	OrderID         string
+	ProductID       string
+	ProductName     string
+	ProductPrice    float64
+	ProductDiscount float64
+	ProductRating   float64
+	TotalPrice      float64
+	Quantity        int64
 }
 
 type BakeryProduct struct {
-	ID          uuid.UUID
-	Price       string
+	ID          string
 	Name        string
 	Description string
 	Category    string
-	Stock       int32
-	Image       string
-	CreatedAt   sql.NullTime
-	UpdatedAt   sql.NullTime
-	DeletedAt   sql.NullTime
+	Price       float64
+	Stock       int64
+	Issued      int64
+	HasStock    int64
+	Discount    float64
+	Rating      float64
+	Images      string
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   sql.NullString
+}
+
+type BakerySession struct {
+	Token  string
+	UserID string
 }
 
 type BakeryUser struct {
-	ID        uuid.UUID
-	FirstName string
-	LastName  string
-	Email     string
-	Password  string
-	BirthDate time.Time
-	Phone     string
-	Role      string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	DeletedAt sql.NullTime
+	ID          string
+	FirstName   string
+	LastName    string
+	Username    string
+	Email       string
+	Password    string
+	PhoneNumber string
+	BirthDate   string
+	Address1    string
+	Address2    string
+	Gender      string
+	Role        string
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   sql.NullString
 }
