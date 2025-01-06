@@ -39,13 +39,6 @@ type RecoverPasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func NewAuthResponse(accessToken, refreshToken string) *AuthResponse {
-	return &AuthResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
-}
-
 func SignUpRequestToDbUser(r *SignUpRequest) (*database.CreateUserParams, error) {
 	id, err := uuid.NewV7()
 	if err != nil {

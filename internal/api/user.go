@@ -1,14 +1,17 @@
 package api
 
-import "github.com/JueViGrace/bakery-go/internal/handlers"
+import (
+	"github.com/JueViGrace/bakery-go/internal/handlers"
+	"github.com/gofiber/fiber/v2"
+)
 
-func (a *api) UserRoutes() {
-	usersGroup := a.App.Group("/api/users", a.sessionMiddleware)
+func (a *api) UserRoutes(api fiber.Router) {
+	usersGroup := api.Group("/users", a.sessionMiddleware)
 
 	userHandler := handlers.NewUserHandler(a.db.UserStore())
 
-	usersGroup.Get("/", userHandler.GetUsers)
-	usersGroup.Get("/:id", userHandler.GetUserById)
-	usersGroup.Patch("/", userHandler.UpdateUser)
-	usersGroup.Delete("/:id", userHandler.DeleteUser)
+	usersGroup.Get("/", a.sessionMiddleware, a.adminAuthMiddleware, userHandler.GetUsers)
+	usersGroup.Get("/:id", a.sessionMiddleware, a.userIdMiddleware, userHandler.GetUserById)
+	usersGroup.Patch("/:id", a.sessionMiddleware, a.userIdMiddleware, userHandler.UpdateUser)
+	usersGroup.Delete("/:id", a.sessionMiddleware, a.userIdMiddleware, userHandler.DeleteUser)
 }

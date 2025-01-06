@@ -23,6 +23,8 @@ func NewAuthHandler(db data.AuthStore) AuthHandler {
 	}
 }
 
+// todo: validation
+
 func (h *authHandler) SignIn(c *fiber.Ctx) error {
 	r := new(types.SignInRequest)
 	if err := c.BodyParser(r); err != nil {
@@ -57,14 +59,14 @@ func (h *authHandler) SignUp(c *fiber.Ctx) error {
 	return c.Status(res.Status).JSON(res)
 }
 
-func (h *authHandler) RecoverPassword(c *fiber.Ctx) error {
-	r := new(types.RecoverPasswordRequest)
+func (h *authHandler) Refresh(c *fiber.Ctx) error {
+	r := new(types.RefreshRequest)
 	if err := c.BodyParser(r); err != nil {
 		res := types.RespondBadRequest(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
 	}
 
-	msg, err := h.db.RecoverPassword(r)
+	msg, err := h.db.Refresh(r)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
@@ -74,14 +76,14 @@ func (h *authHandler) RecoverPassword(c *fiber.Ctx) error {
 	return c.Status(res.Status).JSON(res)
 }
 
-func (h *authHandler) Refresh(c *fiber.Ctx) error {
-	r := new(types.RefreshRequest)
+func (h *authHandler) RecoverPassword(c *fiber.Ctx) error {
+	r := new(types.RecoverPasswordRequest)
 	if err := c.BodyParser(r); err != nil {
 		res := types.RespondBadRequest(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
 	}
 
-	msg, err := h.db.Refresh(r)
+	msg, err := h.db.RecoverPassword(r)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)

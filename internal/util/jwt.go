@@ -16,6 +16,8 @@ var (
 	Audience  jwt.ClaimStrings = jwt.ClaimStrings{
 		"api",
 	}
+	accessExpiration  time.Time = time.Now().Add(1 * time.Hour)
+	refreshExpiration time.Time = time.Now().Add(24 * time.Hour)
 )
 
 type userClaims struct {
@@ -30,7 +32,15 @@ type JWTClaims struct {
 
 // TODO: make refresh token
 
-func CreateJWT(id, fullName string) (string, error) {
+func CreateAccessToken(id, fullName string) (string, error) {
+	return CreateJWT(id, fullName, accessExpiration)
+}
+
+func CreateRefreshToken(id, fullName string) (string, error) {
+	return CreateJWT(id, fullName, refreshExpiration)
+}
+
+func CreateJWT(id, fullName string, expiration time.Time) (string, error) {
 	tokenId, err := uuid.NewV7()
 	if err != nil {
 		return "", err
@@ -47,7 +57,7 @@ func CreateJWT(id, fullName string) (string, error) {
 			FullName: fullName,
 		},
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(expiration),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    Issuer,
@@ -59,7 +69,7 @@ func CreateJWT(id, fullName string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	return token.SignedString(jwtSecret)
+	return token.SignedString([]byte(jwtSecret))
 }
 
 func ValidateJWT(tokenString string) (*jwt.Token, error) {

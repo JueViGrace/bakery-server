@@ -13,8 +13,8 @@ import (
 type AuthStore interface {
 	SignIn(r *types.SignInRequest) (*types.AuthResponse, error)
 	SignUp(r *types.SignUpRequest) (*types.AuthResponse, error)
-	RecoverPassword(r *types.RecoverPasswordRequest) (string, error)
 	Refresh(r *types.RefreshRequest) (*types.AuthResponse, error)
+	RecoverPassword(r *types.RecoverPasswordRequest) (string, error)
 }
 
 func (s *storage) AuthStore() AuthStore {
@@ -36,7 +36,7 @@ func NewAuthStore(ctx context.Context, db *database.Queries) AuthStore {
 func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) {
 	user, err := s.db.GetUserByEmail(s.ctx, r.Email)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("user not found")
 	}
 
 	if user.DeletedAt.Valid {
@@ -47,12 +47,18 @@ func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) 
 		return nil, errors.New("invalid credentials")
 	}
 
-	tokenString, err := util.CreateJWT(user.ID, fmt.Sprintf("%s %s", user.FirstName, user.LastName))
+	res, err := createTokens(&user)
 	if err != nil {
 		return nil, err
 	}
 
-	res := types.NewAuthResponse(tokenString, "")
+	_, err = s.db.CreateToken(s.ctx, database.CreateTokenParams{
+		UserID: user.ID,
+		Token:  res.RefreshToken,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return res, nil
 }
@@ -68,22 +74,74 @@ func (s *authStore) SignUp(r *types.SignUpRequest) (*types.AuthResponse, error) 
 		return nil, err
 	}
 
-	tokenString, err := util.CreateJWT(user.ID, fmt.Sprintf("%s %s", user.FirstName, user.LastName))
+	res, err := createTokens(&user)
 	if err != nil {
 		return nil, err
 	}
 
-	res := types.NewAuthResponse(tokenString, "")
+	_, err = s.db.CreateToken(s.ctx, database.CreateTokenParams{
+		UserID: user.ID,
+		Token:  res.RefreshToken,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return res, nil
 }
 
 // TODO: finish
 
+func (s *authStore) Refresh(r *types.RefreshRequest) (*types.AuthResponse, error) {
+	token, err := util.ValidateJWT(r.RefreshToken)
+	if err != nil {
+		s.db.DeleteTokenByToken(s.ctx, r.RefreshToken)
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(util.JWTClaims)
+	if !ok {
+		return nil, err
+	}
+
+	user, err := s.db.GetUserById(s.ctx, claims.UserId.String())
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := createTokens(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.db.CreateToken(s.ctx, database.CreateTokenParams{
+		UserID: user.ID,
+		Token:  res.RefreshToken,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (s *authStore) RecoverPassword(r *types.RecoverPasswordRequest) (string, error) {
 	return "", nil
 }
 
-func (s *authStore) Refresh(r *types.RefreshRequest) (*types.AuthResponse, error) {
-	return &types.AuthResponse{}, nil
+func createTokens(user *database.BakeryUser) (*types.AuthResponse, error) {
+	accessToken, err := util.CreateAccessToken(user.ID, fmt.Sprintf("%s %s", user.FirstName, user.LastName))
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := util.CreateRefreshToken(user.ID, fmt.Sprintf("%s %s", user.FirstName, user.LastName))
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }

@@ -52,7 +52,7 @@ func RespondForbbiden(data any, message string) *APIResponse {
 }
 
 func RespondNotFound(data any, message string) *APIResponse {
-	return NewAPIResponse(http.StatusNotFound, http.StatusText(http.StatusForbidden), data, message)
+	return NewAPIResponse(http.StatusNotFound, http.StatusText(http.StatusNotFound), data, message)
 }
 
 func RespondInternalServerError(data any, message string) *APIResponse {

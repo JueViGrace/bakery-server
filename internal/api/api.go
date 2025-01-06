@@ -39,10 +39,17 @@ func (a *api) Init() (err error) {
 
 	a.App.Use(logger.New())
 	a.App.Use(cors.New())
+	a.App.Use(func(c *fiber.Ctx) error {
+		return c.SendStatus(404)
+	})
 
 	a.RegisterRoutes()
 
 	err = a.Listen(fmt.Sprintf(":%d", port))
+	if err != nil {
+		a.db.Close()
+		return err
+	}
 
 	return
 }
