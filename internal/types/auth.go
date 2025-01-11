@@ -3,8 +3,8 @@ package types
 import (
 	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/database"
-	"github.com/JueViGrace/bakery-go/internal/util"
+	"github.com/JueViGrace/bakery-server/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/util"
 	"github.com/google/uuid"
 )
 
@@ -19,12 +19,12 @@ type SignInRequest struct {
 }
 
 type SignUpRequest struct {
-	FirstName   string    `json:"firstName"`
-	LastName    string    `json:"lastName"`
-	Username    string    `json:"username"`
-	Email       string    `json:"email"`
-	Password    string    `json:"password"`
-	PhoneNumber string    `json:"phoneNumber"`
+	FirstName   string    `json:"firstName" validate:"required"`
+	LastName    string    `json:"lastName" validate:"required"`
+	Username    string    `json:"username" validate:"required"`
+	Email       string    `json:"email" validate:"required,email"`
+	Password    string    `json:"password" validate:"required"`
+	PhoneNumber string    `json:"phoneNumber" validate:"required"`
 	BirthDate   time.Time `json:"birthDate"`
 	Address1    string    `json:"address1"`
 	Address2    string    `json:"address2"`

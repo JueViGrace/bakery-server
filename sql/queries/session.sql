@@ -1,16 +1,16 @@
--- name: GetTokenById :one
+-- name: GetSessionById :one
 select *
 from bakery_session
 where user_id = ?
 ;
 
--- name: GetTokenByToken :one
+-- name: GetSessionByToken :one
 select *
 from bakery_session
 where token = ?
 ;
 
--- name: CreateToken :one
+-- name: CreateSession :one
 insert or replace into bakery_session(
     user_id,
     token
@@ -18,18 +18,12 @@ insert or replace into bakery_session(
 values (?, ?)
 RETURNING *;
 
--- name: UpdateToken :one
-update bakery_session set
-    token = ?
-where user_id = ?
-RETURNING *;
-
--- name: DeleteTokenById :exec
+-- name: DeleteSessionById :exec
 delete from bakery_session
 where user_id = ?
 ;
 
--- name: DeleteTokenByToken :exec
+-- name: DeleteSessionByToken :exec
 delete from bakery_session
 where token = ?
 ;

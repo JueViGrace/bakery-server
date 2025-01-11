@@ -11,15 +11,15 @@ CREATE TABLE IF NOT EXISTS bakery_user(
     address1 TEXT NOT NULL,
     address2 TEXT NOT NULL DEFAULT '',
     gender TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'USER',
+    role TEXT NOT NULL DEFAULT 'user',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS bakery_session(
-    token TEXT NOT NULL,
-    user_id TEXT NOT NULL PRIMARY KEY REFERENCES bakery_user(id)
+    token TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES bakery_user(id)
 );
 
 CREATE TABLE IF NOT EXISTS bakery_product(

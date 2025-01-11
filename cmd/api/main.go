@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/JueViGrace/bakery-go/internal/server"
+	"github.com/JueViGrace/bakery-server/internal/server"
 )
 
 func main() {

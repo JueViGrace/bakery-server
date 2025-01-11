@@ -1,12 +1,12 @@
 package api
 
 import (
-	"github.com/JueViGrace/bakery-go/internal/handlers"
+	"github.com/JueViGrace/bakery-server/internal/handlers"
 	"github.com/gofiber/fiber/v2"
 )
 
 func (a *api) ProductRoutes(api fiber.Router) {
-	productRoutes := api.Group("/api/products")
+	productRoutes := api.Group("/products")
 
 	productHandler := handlers.NewProductHandler(a.db.ProductStore())
 

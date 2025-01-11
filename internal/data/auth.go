@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/JueViGrace/bakery-go/internal/database"
-	"github.com/JueViGrace/bakery-go/internal/types"
-	"github.com/JueViGrace/bakery-go/internal/util"
+	"github.com/JueViGrace/bakery-server/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/types"
+	"github.com/JueViGrace/bakery-server/internal/util"
 )
 
 type AuthStore interface {

@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/JueViGrace/bakery-go/internal/data"
+	"github.com/JueViGrace/bakery-server/internal/data"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -39,11 +39,12 @@ func (a *api) Init() (err error) {
 
 	a.App.Use(logger.New())
 	a.App.Use(cors.New())
+
+	a.RegisterRoutes()
+
 	a.App.Use(func(c *fiber.Ctx) error {
 		return c.SendStatus(404)
 	})
-
-	a.RegisterRoutes()
 
 	err = a.Listen(fmt.Sprintf(":%d", port))
 	if err != nil {

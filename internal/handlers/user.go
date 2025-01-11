@@ -1,15 +1,16 @@
 package handlers
 
 import (
-	"github.com/JueViGrace/bakery-go/internal/data"
-	"github.com/JueViGrace/bakery-go/internal/types"
-	"github.com/JueViGrace/bakery-go/internal/util"
+	"github.com/JueViGrace/bakery-server/internal/data"
+	"github.com/JueViGrace/bakery-server/internal/types"
+	"github.com/JueViGrace/bakery-server/internal/util"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type UserHandler interface {
 	GetUsers(c *fiber.Ctx) error
-	GetUserById(c *fiber.Ctx) error
+	GetUserById(c *fiber.Ctx, userId *uuid.UUID) error
 	UpdateUser(c *fiber.Ctx) error
 	DeleteUser(c *fiber.Ctx) error
 }
@@ -35,14 +36,8 @@ func (h *userHandler) GetUsers(c *fiber.Ctx) (err error) {
 	return c.Status(res.Status).JSON(res)
 }
 
-func (h *userHandler) GetUserById(c *fiber.Ctx) error {
-	id, err := util.GetIdFromParams(c.Params("id"))
-	if err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	user, err := h.db.GetUserById(id)
+func (h *userHandler) GetUserById(c *fiber.Ctx, userId *uuid.UUID) error {
+	user, err := h.db.GetUserById(userId)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)

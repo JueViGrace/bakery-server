@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/database"
 	"github.com/google/uuid"
 )
 

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/database"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/mattn/go-sqlite3"
 )

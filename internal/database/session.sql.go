@@ -11,7 +11,8 @@ import (
 
 const createToken = `-- name: CreateToken :one
 ;
-insert into bakery_session(
+
+insert or replace into bakery_session(
     user_id,
     token
 )

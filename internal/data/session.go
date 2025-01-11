@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 
-	"github.com/JueViGrace/bakery-go/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/database"
 )
 
 type SessionStore interface {

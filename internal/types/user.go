@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -20,8 +20,8 @@ type UserResponse struct {
 	Address2    string    `json:"address2"`
 	Gender      string    `json:"gender"`
 	Role        string    `json:"-"`
-	CreatedAt   string    `json:"created_at"`
-	UpdatedAt   string    `json:"updated_at"`
+	CreatedAt   string    `json:"createdAt"`
+	UpdatedAt   string    `json:"updatedAt"`
 	DeletedAt   string    `json:"-"`
 }
 

@@ -1,10 +1,13 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	_ "github.com/joho/godotenv/autoload"
@@ -19,6 +22,11 @@ var (
 	accessExpiration  time.Time = time.Now().Add(1 * time.Hour)
 	refreshExpiration time.Time = time.Now().Add(24 * time.Hour)
 )
+
+type JwtData struct {
+	Token  *jwt.Token
+	Claims JWTClaims
+}
 
 type userClaims struct {
 	UserId   uuid.UUID `json:"userId"`
@@ -81,4 +89,48 @@ func ValidateJWT(tokenString string) (*jwt.Token, error) {
 		}
 		return []byte(jwtSecret), nil
 	})
+}
+
+func ExtractJWTFromHeader(c *fiber.Ctx, expired func(string)) (*JwtData, error) {
+	header := strings.Join(c.GetReqHeaders()["Authorization"], "")
+
+	if !strings.HasPrefix(header, "Bearer") {
+		return nil, errors.New("permission denied")
+	}
+
+	tokenString := strings.Split(header, " ")[1]
+	token, err := ValidateJWT(tokenString)
+	if err != nil {
+		return nil, errors.New("permission denied")
+	}
+
+	if !token.Valid {
+		expired(tokenString)
+		return nil, errors.New("permission denied")
+	}
+
+	claims, ok := token.Claims.(JWTClaims)
+	if !ok {
+		expired(tokenString)
+		return nil, errors.New("permission denied")
+	}
+
+	if claims.ExpiresAt.Time.UTC().Unix() < time.Now().UTC().Unix() {
+		expired(tokenString)
+		return nil, errors.New("permision denied")
+	}
+
+	if len(claims.Audience) > 1 || claims.
+		Audience[0] != "api" {
+		return nil, errors.New("permision denied")
+	}
+
+	if claims.Issuer != Issuer {
+		return nil, errors.New("permision denied")
+	}
+
+	return &JwtData{
+		Token:  token,
+		Claims: claims,
+	}, nil
 }

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/JueViGrace/bakery-go/internal/data"
-	"github.com/JueViGrace/bakery-go/internal/types"
+	"github.com/JueViGrace/bakery-server/internal/data"
+	"github.com/JueViGrace/bakery-server/internal/types"
 	"github.com/gofiber/fiber/v2"
 )
 

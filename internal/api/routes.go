@@ -3,7 +3,7 @@ package api
 import (
 	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/types"
+	"github.com/JueViGrace/bakery-server/internal/types"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 )

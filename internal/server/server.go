@@ -1,8 +1,6 @@
 package server
 
-import (
-	"github.com/JueViGrace/bakery-go/internal/api"
-)
+import "github.com/JueViGrace/bakery-server/internal/api"
 
 type FiberServer struct {
 	api api.Api

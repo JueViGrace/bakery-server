@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/JueViGrace/bakery-go/internal/database"
-	"github.com/JueViGrace/bakery-go/internal/types"
+	"github.com/JueViGrace/bakery-server/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/types"
 	"github.com/google/uuid"
 )
 
