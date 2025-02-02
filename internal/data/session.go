@@ -4,13 +4,17 @@ import (
 	"context"
 
 	"github.com/JueViGrace/bakery-server/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/types"
+	"github.com/google/uuid"
 )
 
 type SessionStore interface {
-	GetTokenById(id string) (*database.BakerySession, error)
-	GetTokenByToken(token string) (*database.BakerySession, error)
-	DeleteTokenById(id string) error
-	DeleteTokenByToken(token string) error
+	GetSessionById(id uuid.UUID) (session *types.Session, err error)
+	GetSessionByUsername(username string) (session *types.Session, err error)
+	CreateSession(r *types.Session) (err error)
+	UpdateSession(r *types.Session) (err error)
+	DeleteSessionById(id uuid.UUID) (err error)
+	DeleteSessionByToken(token string) (err error)
 }
 
 func (s *storage) SessionStore() SessionStore {
@@ -29,34 +33,67 @@ func NewSessionStore(ctx context.Context, db *database.Queries) SessionStore {
 	}
 }
 
-func (s *sessionStore) GetTokenById(id string) (*database.BakerySession, error) {
-	session, err := s.db.GetTokenById(s.ctx, id)
+func (s *sessionStore) GetSessionById(id uuid.UUID) (*types.Session, error) {
+	session := new(types.Session)
+
+	dbSession, err := s.db.GetSessionById(s.ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return &session, nil
-}
-
-func (s *sessionStore) GetTokenByToken(token string) (*database.BakerySession, error) {
-	session, err := s.db.GetTokenById(s.ctx, token)
+	session, err = types.DbSessionToSession(&dbSession)
 	if err != nil {
 		return nil, err
 	}
 
-	return &session, nil
+	return session, nil
 }
 
-func (s *sessionStore) DeleteTokenById(id string) error {
-	err := s.db.DeleteTokenById(s.ctx, id)
+func (s *sessionStore) GetSessionByUsername(username string) (*types.Session, error) {
+	session := new(types.Session)
+
+	dbSession, err := s.db.GetSessionByUsername(s.ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err = types.DbSessionToSession(&dbSession)
+	if err != nil {
+		return nil, err
+	}
+
+	return session, nil
+}
+
+func (s *sessionStore) CreateSession(r *types.Session) error {
+	err := s.db.CreateSession(s.ctx, *types.CreateSessionToDb(r))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *sessionStore) DeleteTokenByToken(token string) error {
-	err := s.db.DeleteTokenByToken(s.ctx, token)
+func (s *sessionStore) UpdateSession(r *types.Session) error {
+	err := s.db.UpdateSession(s.ctx, *types.UpdateSessionToDb(r))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *sessionStore) DeleteSessionById(id uuid.UUID) error {
+	err := s.db.DeleteSessionById(s.ctx, id.String())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *sessionStore) DeleteSessionByToken(token string) error {
+	err := s.db.DeleteSessionByToken(s.ctx, database.DeleteSessionByTokenParams{
+		RefreshToken: token,
+		AccessToken:  token,
+	})
 	if err != nil {
 		return err
 	}

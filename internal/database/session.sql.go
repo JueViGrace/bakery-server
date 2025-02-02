@@ -9,94 +9,121 @@ import (
 	"context"
 )
 
-const createToken = `-- name: CreateToken :one
+const createSession = `-- name: CreateSession :exec
 ;
 
-insert or replace into bakery_session(
-    user_id,
-    token
+insert into bakery_session(
+    refresh_token,
+    access_token,
+    username,
+    user_id
 )
-values (?, ?)
-RETURNING token, user_id
+values (?, ?, ?, ?)
 `
 
-type CreateTokenParams struct {
-	UserID string
-	Token  string
+type CreateSessionParams struct {
+	RefreshToken string
+	AccessToken  string
+	Username     string
+	UserID       string
 }
 
-func (q *Queries) CreateToken(ctx context.Context, arg CreateTokenParams) (BakerySession, error) {
-	row := q.db.QueryRowContext(ctx, createToken, arg.UserID, arg.Token)
-	var i BakerySession
-	err := row.Scan(&i.Token, &i.UserID)
-	return i, err
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
+	_, err := q.db.ExecContext(ctx, createSession,
+		arg.RefreshToken,
+		arg.AccessToken,
+		arg.Username,
+		arg.UserID,
+	)
+	return err
 }
 
-const deleteTokenById = `-- name: DeleteTokenById :exec
+const deleteSessionById = `-- name: DeleteSessionById :exec
 delete from bakery_session
 where user_id = ?
 `
 
-func (q *Queries) DeleteTokenById(ctx context.Context, userID string) error {
-	_, err := q.db.ExecContext(ctx, deleteTokenById, userID)
+func (q *Queries) DeleteSessionById(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteSessionById, userID)
 	return err
 }
 
-const deleteTokenByToken = `-- name: DeleteTokenByToken :exec
+const deleteSessionByToken = `-- name: DeleteSessionByToken :exec
 ;
 
 delete from bakery_session
-where token = ?
+where refresh_token = ? or access_token = ?
 `
 
-func (q *Queries) DeleteTokenByToken(ctx context.Context, token string) error {
-	_, err := q.db.ExecContext(ctx, deleteTokenByToken, token)
+type DeleteSessionByTokenParams struct {
+	RefreshToken string
+	AccessToken  string
+}
+
+func (q *Queries) DeleteSessionByToken(ctx context.Context, arg DeleteSessionByTokenParams) error {
+	_, err := q.db.ExecContext(ctx, deleteSessionByToken, arg.RefreshToken, arg.AccessToken)
 	return err
 }
 
-const getTokenById = `-- name: GetTokenById :one
-select token, user_id
+const getSessionById = `-- name: GetSessionById :one
+select refresh_token, access_token, username, user_id
 from bakery_session
 where user_id = ?
 `
 
-func (q *Queries) GetTokenById(ctx context.Context, userID string) (BakerySession, error) {
-	row := q.db.QueryRowContext(ctx, getTokenById, userID)
+func (q *Queries) GetSessionById(ctx context.Context, userID string) (BakerySession, error) {
+	row := q.db.QueryRowContext(ctx, getSessionById, userID)
 	var i BakerySession
-	err := row.Scan(&i.Token, &i.UserID)
+	err := row.Scan(
+		&i.RefreshToken,
+		&i.AccessToken,
+		&i.Username,
+		&i.UserID,
+	)
 	return i, err
 }
 
-const getTokenByToken = `-- name: GetTokenByToken :one
+const getSessionByUsername = `-- name: GetSessionByUsername :one
 ;
 
-select token, user_id
+select refresh_token, access_token, username, user_id
 from bakery_session
-where token = ?
+where username = ?
 `
 
-func (q *Queries) GetTokenByToken(ctx context.Context, token string) (BakerySession, error) {
-	row := q.db.QueryRowContext(ctx, getTokenByToken, token)
+func (q *Queries) GetSessionByUsername(ctx context.Context, username string) (BakerySession, error) {
+	row := q.db.QueryRowContext(ctx, getSessionByUsername, username)
 	var i BakerySession
-	err := row.Scan(&i.Token, &i.UserID)
+	err := row.Scan(
+		&i.RefreshToken,
+		&i.AccessToken,
+		&i.Username,
+		&i.UserID,
+	)
 	return i, err
 }
 
-const updateToken = `-- name: UpdateToken :one
+const updateSession = `-- name: UpdateSession :exec
 update bakery_session set
-    token = ?
+    refresh_token = ?,
+    access_token = ?,
+    username = ?
 where user_id = ?
-RETURNING token, user_id
 `
 
-type UpdateTokenParams struct {
-	Token  string
-	UserID string
+type UpdateSessionParams struct {
+	RefreshToken string
+	AccessToken  string
+	Username     string
+	UserID       string
 }
 
-func (q *Queries) UpdateToken(ctx context.Context, arg UpdateTokenParams) (BakerySession, error) {
-	row := q.db.QueryRowContext(ctx, updateToken, arg.Token, arg.UserID)
-	var i BakerySession
-	err := row.Scan(&i.Token, &i.UserID)
-	return i, err
+func (q *Queries) UpdateSession(ctx context.Context, arg UpdateSessionParams) error {
+	_, err := q.db.ExecContext(ctx, updateSession,
+		arg.RefreshToken,
+		arg.AccessToken,
+		arg.Username,
+		arg.UserID,
+	)
+	return err
 }

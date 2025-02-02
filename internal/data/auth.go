@@ -13,7 +13,7 @@ import (
 type AuthStore interface {
 	SignIn(r *types.SignInRequest) (*types.AuthResponse, error)
 	SignUp(r *types.SignUpRequest) (*types.AuthResponse, error)
-	Refresh(r *types.RefreshRequest) (*types.AuthResponse, error)
+	Refresh(r *types.RefreshRequest, a *types.AuthData) (*types.AuthResponse, error)
 	RecoverPassword(r *types.RecoverPasswordRequest) (string, error)
 }
 
@@ -52,10 +52,7 @@ func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) 
 		return nil, err
 	}
 
-	_, err = s.db.CreateToken(s.ctx, database.CreateTokenParams{
-		UserID: user.ID,
-		Token:  res.RefreshToken,
-	})
+	err = s.db.CreateSession(s.ctx, *types.CreateSessionToDb(&types.Session{}))
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +76,7 @@ func (s *authStore) SignUp(r *types.SignUpRequest) (*types.AuthResponse, error) 
 		return nil, err
 	}
 
-	_, err = s.db.CreateToken(s.ctx, database.CreateTokenParams{
-		UserID: user.ID,
-		Token:  res.RefreshToken,
-	})
+	err = s.db.CreateSession(s.ctx, *types.CreateSessionToDb(&types.Session{}))
 	if err != nil {
 		return nil, err
 	}
@@ -92,19 +86,8 @@ func (s *authStore) SignUp(r *types.SignUpRequest) (*types.AuthResponse, error) 
 
 // TODO: finish
 
-func (s *authStore) Refresh(r *types.RefreshRequest) (*types.AuthResponse, error) {
-	token, err := util.ValidateJWT(r.RefreshToken)
-	if err != nil {
-		s.db.DeleteTokenByToken(s.ctx, r.RefreshToken)
-		return nil, err
-	}
-
-	claims, ok := token.Claims.(util.JWTClaims)
-	if !ok {
-		return nil, err
-	}
-
-	user, err := s.db.GetUserById(s.ctx, claims.UserId.String())
+func (s *authStore) Refresh(r *types.RefreshRequest, a *types.AuthData) (*types.AuthResponse, error) {
+	user, err := s.db.GetUserById(s.ctx, a.UserId.String())
 	if err != nil {
 		return nil, err
 	}
@@ -114,10 +97,7 @@ func (s *authStore) Refresh(r *types.RefreshRequest) (*types.AuthResponse, error
 		return nil, err
 	}
 
-	_, err = s.db.CreateToken(s.ctx, database.CreateTokenParams{
-		UserID: user.ID,
-		Token:  res.RefreshToken,
-	})
+	err = s.db.CreateSession(s.ctx, *types.CreateSessionToDb(&types.Session{}))
 	if err != nil {
 		return nil, err
 	}

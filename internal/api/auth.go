@@ -12,6 +12,6 @@ func (a *api) AuthRoutes(api fiber.Router) {
 
 	authGroup.Post("/signIn", authHandler.SignIn)
 	authGroup.Post("/signUp", authHandler.SignUp)
-	authGroup.Post("/refresh", authHandler.Refresh)
+	authGroup.Post("/refresh", a.authenticatedHandler(authHandler.Refresh))
 	authGroup.Post("/recover/password", authHandler.RecoverPassword)
 }

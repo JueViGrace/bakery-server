@@ -7,20 +7,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type AuthData struct {
-	jwt  util.JwtData
-	role string
-}
-
 func (a *api) adminAuthMiddleware(c *fiber.Ctx) error {
 	data, err := getUserDataForReq(c, a.db)
 	if err != nil {
-		res := types.RespondUnauthorized(err.Error(), "Failed")
+		res := types.RespondUnauthorized(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
-	if data.role != types.Admin {
-		res := types.RespondForbbiden("permission denied", "Failed")
+	if data.Role != types.Admin {
+		res := types.RespondForbbiden(nil, "forbbiden resource")
 		return c.Status(res.Status).JSON(res)
 	}
 
@@ -28,63 +23,48 @@ func (a *api) adminAuthMiddleware(c *fiber.Ctx) error {
 }
 
 func (a *api) sessionMiddleware(c *fiber.Ctx) error {
-	data, err := getUserDataForReq(c, a.db)
+	_, err := getUserDataForReq(c, a.db)
 	if err != nil {
-		res := types.RespondUnauthorized(err.Error(), "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	_, err = a.db.SessionStore().GetTokenByToken(data.jwt.Token.Raw)
-	if err != nil {
-		res := types.RespondUnauthorized(err.Error(), "Failed")
+		res := types.RespondUnauthorized(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
 	return c.Next()
 }
 
-func (a *api) userIdMiddleware(c *fiber.Ctx) error {
-	data, err := getUserDataForReq(c, a.db)
-	if err != nil {
-		res := types.RespondUnauthorized(err.Error(), "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
+func (a *api) authenticatedHandler(handler types.AuthDataHandler) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		data, err := getUserDataForReq(c, a.db)
+		if err != nil {
+			res := types.RespondUnauthorized(nil, err.Error())
+			return c.Status(res.Status).JSON(res)
+		}
 
-	if data.role == types.Admin {
-		return c.Next()
+		return handler(c, data)
 	}
-
-	id, err := util.GetIdFromParams(c.Params("id"))
-	if err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	if data.jwt.Claims.UserId != *id {
-		res := types.RespondForbbiden("Forbbiden action", "Failed")
-		return c.Status(res.Status).JSON(res)
-	}
-
-	return c.Next()
 }
 
-// // todo: orders middleware
-
-func getUserDataForReq(c *fiber.Ctx, db data.Storage) (*AuthData, error) {
+func getUserDataForReq(c *fiber.Ctx, db data.Storage) (*types.AuthData, error) {
 	jwt, err := util.ExtractJWTFromHeader(c, func(s string) {
-		db.SessionStore().DeleteTokenByToken(s)
+		db.SessionStore().DeleteSessionByToken(s)
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := db.UserStore().GetUserById(&jwt.Claims.UserId)
+	session, err := db.SessionStore().GetSessionById(jwt.Claims.UserId)
 	if err != nil {
 		return nil, err
 	}
 
-	return &AuthData{
-		jwt:  *jwt,
-		role: user.Role,
+	dbUser, err := db.UserStore().GetUserById(&session.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AuthData{
+		UserId:   dbUser.ID,
+		Username: dbUser.Username,
+		Role:     dbUser.Role,
 	}, nil
 }

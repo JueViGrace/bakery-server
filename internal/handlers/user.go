@@ -5,14 +5,13 @@ import (
 	"github.com/JueViGrace/bakery-server/internal/types"
 	"github.com/JueViGrace/bakery-server/internal/util"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 type UserHandler interface {
 	GetUsers(c *fiber.Ctx) error
-	GetUserById(c *fiber.Ctx, userId *uuid.UUID) error
-	UpdateUser(c *fiber.Ctx) error
-	DeleteUser(c *fiber.Ctx) error
+	GetUserById(c *fiber.Ctx, a *types.AuthData) error
+	UpdateUser(c *fiber.Ctx, a *types.AuthData) error
+	DeleteUser(c *fiber.Ctx, a *types.AuthData) error
 }
 
 type userHandler struct {
@@ -36,8 +35,8 @@ func (h *userHandler) GetUsers(c *fiber.Ctx) (err error) {
 	return c.Status(res.Status).JSON(res)
 }
 
-func (h *userHandler) GetUserById(c *fiber.Ctx, userId *uuid.UUID) error {
-	user, err := h.db.GetUserById(userId)
+func (h *userHandler) GetUserById(c *fiber.Ctx, a *types.AuthData) error {
+	user, err := h.db.GetUserById(&a.UserId)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
@@ -47,7 +46,8 @@ func (h *userHandler) GetUserById(c *fiber.Ctx, userId *uuid.UUID) error {
 	return c.Status(res.Status).JSON(res)
 }
 
-func (h *userHandler) UpdateUser(c *fiber.Ctx) error {
+// todo: refactor this
+func (h *userHandler) UpdateUser(c *fiber.Ctx, a *types.AuthData) error {
 	r := new(types.UpdateUserRequest)
 	if err := c.BodyParser(r); err != nil {
 		res := types.RespondBadRequest(err.Error(), "Failed")
@@ -64,7 +64,7 @@ func (h *userHandler) UpdateUser(c *fiber.Ctx) error {
 	return c.Status(res.Status).JSON(res)
 }
 
-func (h *userHandler) DeleteUser(c *fiber.Ctx) error {
+func (h *userHandler) DeleteUser(c *fiber.Ctx, a *types.AuthData) error {
 	id, err := util.GetIdFromParams(c.Params("id"))
 	if err != nil {
 		res := types.RespondBadRequest(err.Error(), "Failed")

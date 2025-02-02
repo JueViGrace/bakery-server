@@ -5,8 +5,17 @@ import (
 
 	"github.com/JueViGrace/bakery-server/internal/database"
 	"github.com/JueViGrace/bakery-server/internal/util"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
+
+type AuthDataHandler = func(*fiber.Ctx, *AuthData) error
+
+type AuthData struct {
+	UserId   uuid.UUID
+	Username string
+	Role     string
+}
 
 type AuthResponse struct {
 	AccessToken  string `json:"accessToken"`

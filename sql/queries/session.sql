@@ -4,19 +4,27 @@ from bakery_session
 where user_id = ?
 ;
 
--- name: GetSessionByToken :one
+-- name: GetSessionByUsername :one
 select *
 from bakery_session
-where token = ?
+where username = ?
 ;
 
--- name: CreateSession :one
-insert or replace into bakery_session(
-    user_id,
-    token
+-- name: CreateSession :exec
+insert into bakery_session(
+    refresh_token,
+    access_token,
+    username,
+    user_id
 )
-values (?, ?)
-RETURNING *;
+values (?, ?, ?, ?);
+
+-- name: UpdateSession :exec
+update bakery_session set
+    refresh_token = ?,
+    access_token = ?,
+    username = ?
+where user_id = ?;
 
 -- name: DeleteSessionById :exec
 delete from bakery_session
@@ -25,6 +33,6 @@ where user_id = ?
 
 -- name: DeleteSessionByToken :exec
 delete from bakery_session
-where token = ?
+where refresh_token = ? or access_token = ?
 ;
 

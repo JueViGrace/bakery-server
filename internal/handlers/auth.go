@@ -9,8 +9,8 @@ import (
 type AuthHandler interface {
 	SignIn(c *fiber.Ctx) error
 	SignUp(c *fiber.Ctx) error
+	Refresh(c *fiber.Ctx, a *types.AuthData) error
 	RecoverPassword(c *fiber.Ctx) error
-	Refresh(c *fiber.Ctx) error
 }
 
 type authHandler struct {
@@ -59,14 +59,14 @@ func (h *authHandler) SignUp(c *fiber.Ctx) error {
 	return c.Status(res.Status).JSON(res)
 }
 
-func (h *authHandler) Refresh(c *fiber.Ctx) error {
+func (h *authHandler) Refresh(c *fiber.Ctx, a *types.AuthData) error {
 	r := new(types.RefreshRequest)
 	if err := c.BodyParser(r); err != nil {
 		res := types.RespondBadRequest(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)
 	}
 
-	msg, err := h.db.Refresh(r)
+	msg, err := h.db.Refresh(r, a)
 	if err != nil {
 		res := types.RespondNotFound(err.Error(), "Failed")
 		return c.Status(res.Status).JSON(res)

@@ -26,6 +26,7 @@ func (a *api) ApiRoutes() {
 	a.ProductRoutes(api)
 }
 
+// todo: make another module?
 func (a *api) WebRoutes() {
 	a.App.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON("Root")

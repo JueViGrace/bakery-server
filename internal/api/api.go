@@ -6,6 +6,9 @@ import (
 	"strconv"
 
 	"github.com/JueViGrace/bakery-server/internal/data"
+	"github.com/JueViGrace/bakery-server/internal/types"
+	"github.com/JueViGrace/bakery-server/internal/util"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -17,7 +20,8 @@ type Api interface {
 
 type api struct {
 	*fiber.App
-	db data.Storage
+	db        data.Storage
+	validator *util.XValidator
 }
 
 func New() Api {
@@ -25,9 +29,15 @@ func New() Api {
 		App: fiber.New(fiber.Config{
 			ServerHeader: "BakeryServer",
 			AppName:      "BakeryServer",
+			ErrorHandler: func(c *fiber.Ctx, err error) error {
+				res := types.RespondBadRequest(nil, err.Error())
+				return c.Status(res.Status).JSON(res)
+			},
 		}),
-
 		db: data.NewStorage(),
+		validator: &util.XValidator{
+			Validator: validator.New(),
+		},
 	}
 }
 

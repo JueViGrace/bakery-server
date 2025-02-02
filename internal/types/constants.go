@@ -8,7 +8,7 @@ const (
 const (
 	Cash      string = "cash"
 	Transfer  string = "transfer"
-	MobilePay string = "mobile pay" 
+	MobilePay string = "mobile pay"
 )
 
 const (
@@ -17,5 +17,3 @@ const (
 	Dispatched string = "dispatched"
 	Delivered  string = "delivered"
 )
-
-var validator

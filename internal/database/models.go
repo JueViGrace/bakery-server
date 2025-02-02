@@ -47,8 +47,10 @@ type BakeryProduct struct {
 }
 
 type BakerySession struct {
-	Token  string
-	UserID string
+	RefreshToken string
+	AccessToken  string
+	Username     string
+	UserID       string
 }
 
 type BakeryUser struct {
