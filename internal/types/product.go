@@ -26,29 +26,34 @@ type ProductResponse struct {
 }
 
 type CreateProductRequest struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Category    string   `json:"category"`
-	Price       float64  `json:"price"`
-	Stock       int      `json:"stock"`
-	Issued      int      `json:"issued"`
-	HasStock    int      `json:"hasStock"`
-	Discount    float64  `json:"discount"`
-	Rating      float64  `json:"rating"`
-	Images      []string `json:"images"`
+	Name        string   `json:"name" validate:"required"`
+	Description string   `json:"description" validate:"required"`
+	Category    string   `json:"category" validate:"required"`
+	Price       float64  `json:"price" validate:"required"`
+	Stock       int      `json:"stock" validate:"required"`
+	Issued      int      `json:"issued" validate:"required"`
+	HasStock    int      `json:"hasStock" validate:"required"`
+	Discount    float64  `json:"discount" validate:"required"`
+	Rating      float64  `json:"rating" validate:"required"`
+	Images      []string `json:"images" validate:"required"`
 }
 
 type UpdateProductRequest struct {
-	Description string    `json:"description"`
-	Category    string    `json:"category"`
-	Price       float64   `json:"price"`
-	Stock       int       `json:"stock"`
-	Issued      int       `json:"issued"`
-	HasStock    int       `json:"hasStock"`
-	Discount    float64   `json:"discount"`
-	Rating      float64   `json:"rating"`
-	Images      []string  `json:"images"`
-	ID          uuid.UUID `json:"id"`
+	Description string    `json:"description" validate:"required"`
+	Category    string    `json:"category" validate:"required"`
+	Price       float64   `json:"price" validate:"required"`
+	Stock       int       `json:"stock" validate:"required"`
+	Issued      int       `json:"issued" validate:"required"`
+	HasStock    int       `json:"hasStock" validate:"required"`
+	Discount    float64   `json:"discount" validate:"required"`
+	Rating      float64   `json:"rating" validate:"required"`
+	Images      []string  `json:"images" validate:"required"`
+	ID          uuid.UUID `json:"id" validate:"required"`
+}
+
+type UpdateProductNameRequest struct {
+	Name string    `json:"name" validate:"required"`
+	ID          uuid.UUID `json:"id" validate:"required"`
 }
 
 func DbProductToProduct(db *database.BakeryProduct) (*ProductResponse, error) {

@@ -26,18 +26,18 @@ type UserResponse struct {
 }
 
 type UpdateUserRequest struct {
-	ID          uuid.UUID `json:"id"`
-	FirstName   string    `json:"firstName"`
-	LastName    string    `json:"lastName"`
-	PhoneNumber string    `json:"phoneNumber"`
-	BirthDate   time.Time `json:"birthDate"`
-	Address1    string    `json:"address1"`
-	Address2    string    `json:"address2"`
-	Gender      string    `json:"gender"`
+	ID          uuid.UUID `json:"id" validate:"required"`
+	FirstName   string    `json:"firstName" validate:"required"`
+	LastName    string    `json:"lastName" validate:"required"`
+	PhoneNumber string    `json:"phoneNumber" validate:"required"`
+	BirthDate   time.Time `json:"birthDate" validate:"required"`
+	Address1    string    `json:"address1" validate:"required"`
+	Address2    string    `json:"address2" validate:"required"`
+	Gender      string    `json:"gender" validate:"required"`
 }
 
 type ChangeEmailRequest struct {
-	Email string `json:"email"`
+	Email string `json:"email" validate:"required"`
 }
 
 func DbUserToUser(db *database.BakeryUser) (user *UserResponse, err error) {

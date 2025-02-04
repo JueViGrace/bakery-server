@@ -23,8 +23,8 @@ type AuthResponse struct {
 }
 
 type SignInRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type SignUpRequest struct {
@@ -34,18 +34,18 @@ type SignUpRequest struct {
 	Email       string    `json:"email" validate:"required,email"`
 	Password    string    `json:"password" validate:"required"`
 	PhoneNumber string    `json:"phoneNumber" validate:"required"`
-	BirthDate   time.Time `json:"birthDate"`
-	Address1    string    `json:"address1"`
-	Address2    string    `json:"address2"`
-	Gender      string    `json:"gender"`
+	BirthDate   time.Time `json:"birthDate" validate:"required"`
+	Address1    string    `json:"address1" validate:"required"`
+	Address2    string    `json:"address2" validate:"required"`
+	Gender      string    `json:"gender" validate:"required"`
 }
 
 type RefreshRequest struct {
-	RefreshToken string `json:"refreshToken"`
+	RefreshToken string `json:"refreshToken" validate:"required"`
 }
 
 type RecoverPasswordRequest struct {
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required"`
 }
 
 func SignUpRequestToDbUser(r *SignUpRequest) (*database.CreateUserParams, error) {
