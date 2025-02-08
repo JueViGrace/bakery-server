@@ -40,8 +40,6 @@ var (
 	}
 )
 
-// TODO: make refresh token
-
 func CreateAccessToken(id, fullName string) (string, error) {
 	return CreateJWT(id, fullName, time.Now().UTC().Add(1*time.Hour))
 }

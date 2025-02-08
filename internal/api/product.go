@@ -8,7 +8,7 @@ import (
 func (a *api) ProductRoutes(api fiber.Router) {
 	productRoutes := api.Group("/products")
 
-	productHandler := handlers.NewProductHandler(a.db.ProductStore())
+	productHandler := handlers.NewProductHandler(a.db.ProductStore(), a.validator)
 
 	productRoutes.Get("/", productHandler.GetProducts)
 	productRoutes.Get("/:id", productHandler.GetProductById)

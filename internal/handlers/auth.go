@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/JueViGrace/bakery-server/internal/data"
 	"github.com/JueViGrace/bakery-server/internal/types"
+	"github.com/JueViGrace/bakery-server/internal/util"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -14,17 +15,18 @@ type AuthHandler interface {
 }
 
 type authHandler struct {
-	db data.AuthStore
+	db        data.AuthStore
+	validator *util.XValidator
 }
 
-func NewAuthHandler(db data.AuthStore) AuthHandler {
+func NewAuthHandler(db data.AuthStore, validator *util.XValidator) AuthHandler {
 	return &authHandler{
-		db: db,
+		db:        db,
+		validator: validator,
 	}
 }
 
 // todo: validation
-
 func (h *authHandler) SignIn(c *fiber.Ctx) error {
 	r := new(types.SignInRequest)
 	if err := c.BodyParser(r); err != nil {

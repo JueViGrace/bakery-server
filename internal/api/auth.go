@@ -8,7 +8,7 @@ import (
 func (a *api) AuthRoutes(api fiber.Router) {
 	authGroup := api.Group("/auth")
 
-	authHandler := handlers.NewAuthHandler(a.db.AuthStore())
+	authHandler := handlers.NewAuthHandler(a.db.AuthStore(), a.validator)
 
 	authGroup.Post("/signIn", authHandler.SignIn)
 	authGroup.Post("/signUp", authHandler.SignUp)

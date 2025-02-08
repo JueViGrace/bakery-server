@@ -16,12 +16,14 @@ type ProductRoutes interface {
 }
 
 type ProductHandler struct {
-	db data.ProductStore
+	db        data.ProductStore
+	validator *util.XValidator
 }
 
-func NewProductHandler(db data.ProductStore) ProductRoutes {
+func NewProductHandler(db data.ProductStore, validator *util.XValidator) ProductRoutes {
 	return &ProductHandler{
-		db: db,
+		db:        db,
+		validator: validator,
 	}
 }
 

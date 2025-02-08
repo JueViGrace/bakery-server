@@ -15,12 +15,14 @@ type UserHandler interface {
 }
 
 type userHandler struct {
-	db data.UserStore
+	db        data.UserStore
+	validator *util.XValidator
 }
 
-func NewUserHandler(db data.UserStore) UserHandler {
+func NewUserHandler(db data.UserStore, validator *util.XValidator) UserHandler {
 	return &userHandler{
-		db: db,
+		db:        db,
+		validator: validator,
 	}
 }
 

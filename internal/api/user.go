@@ -8,7 +8,7 @@ import (
 func (a *api) UserRoutes(api fiber.Router) {
 	usersGroup := api.Group("/users", a.sessionMiddleware)
 
-	userHandler := handlers.NewUserHandler(a.db.UserStore())
+	userHandler := handlers.NewUserHandler(a.db.UserStore(), a.validator)
 
 	usersGroup.Get("/", a.adminAuthMiddleware, userHandler.GetUsers)
 	usersGroup.Get("/me", a.authenticatedHandler(userHandler.GetUserById))
