@@ -16,12 +16,12 @@ type ProductResponse struct {
 	Price       float64   `json:"price"`
 	Stock       int       `json:"stock"`
 	Issued      int       `json:"issued"`
-	HasStock    int       `json:"hasStock"`
+	HasStock    int       `json:"has_stock"`
 	Discount    float64   `json:"discount"`
 	Rating      float64   `json:"rating"`
 	Images      []string  `json:"images"`
-	CreatedAt   string    `json:"createdAt"`
-	UpdatedAt   string    `json:"updatedAt"`
+	CreatedAt   string    `json:"created_at"`
+	UpdatedAt   string    `json:"updated_at"`
 	DeletedAt   string    `json:"-"`
 }
 
@@ -32,7 +32,7 @@ type CreateProductRequest struct {
 	Price       float64  `json:"price" validate:"required"`
 	Stock       int      `json:"stock" validate:"required"`
 	Issued      int      `json:"issued" validate:"required"`
-	HasStock    int      `json:"hasStock" validate:"required"`
+	HasStock    int      `json:"has_stock" validate:"required"`
 	Discount    float64  `json:"discount" validate:"required"`
 	Rating      float64  `json:"rating" validate:"required"`
 	Images      []string `json:"images" validate:"required"`
@@ -44,7 +44,7 @@ type UpdateProductRequest struct {
 	Price       float64   `json:"price" validate:"required"`
 	Stock       int       `json:"stock" validate:"required"`
 	Issued      int       `json:"issued" validate:"required"`
-	HasStock    int       `json:"hasStock" validate:"required"`
+	HasStock    int       `json:"has_stock" validate:"required"`
 	Discount    float64   `json:"discount" validate:"required"`
 	Rating      float64   `json:"rating" validate:"required"`
 	Images      []string  `json:"images" validate:"required"`
@@ -53,7 +53,7 @@ type UpdateProductRequest struct {
 
 type UpdateProductNameRequest struct {
 	Name string    `json:"name" validate:"required"`
-	ID          uuid.UUID `json:"id" validate:"required"`
+	ID   uuid.UUID `json:"id" validate:"required"`
 }
 
 func DbProductToProduct(db *database.BakeryProduct) (*ProductResponse, error) {

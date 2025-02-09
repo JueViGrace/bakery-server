@@ -9,28 +9,29 @@ import (
 
 type UserResponse struct {
 	ID          uuid.UUID `json:"id"`
-	FirstName   string    `json:"firstName"`
-	LastName    string    `json:"lastName"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
 	Username    string    `json:"username"`
 	Email       string    `json:"email"`
 	Password    string    `json:"-"`
-	PhoneNumber string    `json:"phoneNumber"`
-	BirthDate   time.Time `json:"birthDate"`
+	PhoneNumber string    `json:"phone_number"`
+	BirthDate   string    `json:"birth_date"`
 	Address1    string    `json:"address1"`
 	Address2    string    `json:"address2"`
 	Gender      string    `json:"gender"`
 	Role        string    `json:"-"`
-	CreatedAt   string    `json:"createdAt"`
-	UpdatedAt   string    `json:"updatedAt"`
+	CreatedAt   string    `json:"created_at"`
+	UpdatedAt   string    `json:"updated_at"`
 	DeletedAt   string    `json:"-"`
 }
 
+// todo: make addresses an array
 type UpdateUserRequest struct {
 	ID          uuid.UUID `json:"id" validate:"required"`
-	FirstName   string    `json:"firstName" validate:"required"`
-	LastName    string    `json:"lastName" validate:"required"`
-	PhoneNumber string    `json:"phoneNumber" validate:"required"`
-	BirthDate   time.Time `json:"birthDate" validate:"required"`
+	FirstName   string    `json:"first_name" validate:"required"`
+	LastName    string    `json:"last_name" validate:"required"`
+	PhoneNumber string    `json:"phone_number" validate:"required"`
+	BirthDate   string    `json:"birth_date" validate:"required"`
 	Address1    string    `json:"address1" validate:"required"`
 	Address2    string    `json:"address2" validate:"required"`
 	Gender      string    `json:"gender" validate:"required"`
@@ -59,7 +60,7 @@ func DbUserToUser(db *database.BakeryUser) (user *UserResponse, err error) {
 		Email:       db.Email,
 		Password:    db.Password,
 		PhoneNumber: db.PhoneNumber,
-		BirthDate:   birthDate,
+		BirthDate:   birthDate.String(),
 		Address1:    db.Address1,
 		Address2:    db.Address2,
 		Gender:      db.Gender,
@@ -77,7 +78,7 @@ func NewUpdateUserParams(r *UpdateUserRequest) *database.UpdateUserParams {
 		FirstName:   r.FirstName,
 		LastName:    r.LastName,
 		PhoneNumber: r.PhoneNumber,
-		BirthDate:   r.BirthDate.String(),
+		BirthDate:   r.BirthDate,
 		Address1:    r.Address1,
 		Address2:    r.Address2,
 		Gender:      r.Gender,

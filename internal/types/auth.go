@@ -18,8 +18,8 @@ type AuthData struct {
 }
 
 type AuthResponse struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type SignInRequest struct {
@@ -28,20 +28,20 @@ type SignInRequest struct {
 }
 
 type SignUpRequest struct {
-	FirstName   string    `json:"firstName" validate:"required"`
-	LastName    string    `json:"lastName" validate:"required"`
+	FirstName   string    `json:"first_name" validate:"required"`
+	LastName    string    `json:"last_name" validate:"required"`
 	Username    string    `json:"username" validate:"required"`
 	Email       string    `json:"email" validate:"required,email"`
 	Password    string    `json:"password" validate:"required"`
-	PhoneNumber string    `json:"phoneNumber" validate:"required"`
-	BirthDate   time.Time `json:"birthDate" validate:"required"`
+	PhoneNumber string    `json:"phone_number" validate:"required"`
+	BirthDate   time.Time `json:"birth_date" validate:"required"`
 	Address1    string    `json:"address1" validate:"required"`
 	Address2    string    `json:"address2" validate:"required"`
 	Gender      string    `json:"gender" validate:"required"`
 }
 
 type RefreshRequest struct {
-	RefreshToken string `json:"refreshToken" validate:"required"`
+	RefreshToken string `json:"refresh_token" validate:"required"`
 }
 
 type RecoverPasswordRequest struct {
