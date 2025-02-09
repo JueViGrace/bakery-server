@@ -29,7 +29,7 @@ func NewUserHandler(db data.UserStore, validator *util.XValidator) UserHandler {
 func (h *userHandler) GetUsers(c *fiber.Ctx) (err error) {
 	users, err := h.db.GetUsers()
 	if err != nil {
-		res := types.RespondNotFound(err.Error(), "Failed")
+		res := types.RespondNotFound(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
@@ -40,7 +40,7 @@ func (h *userHandler) GetUsers(c *fiber.Ctx) (err error) {
 func (h *userHandler) GetUserById(c *fiber.Ctx, a *types.AuthData) error {
 	user, err := h.db.GetUserById(&a.UserId)
 	if err != nil {
-		res := types.RespondNotFound(err.Error(), "Failed")
+		res := types.RespondNotFound(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
@@ -52,13 +52,13 @@ func (h *userHandler) GetUserById(c *fiber.Ctx, a *types.AuthData) error {
 func (h *userHandler) UpdateUser(c *fiber.Ctx, a *types.AuthData) error {
 	r := new(types.UpdateUserRequest)
 	if err := c.BodyParser(r); err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
+		res := types.RespondBadRequest(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
 	user, err := h.db.UpdateUser(r)
 	if err != nil {
-		res := types.RespondNotFound(err.Error(), "Failed")
+		res := types.RespondNotFound(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
@@ -69,13 +69,13 @@ func (h *userHandler) UpdateUser(c *fiber.Ctx, a *types.AuthData) error {
 func (h *userHandler) DeleteUser(c *fiber.Ctx, a *types.AuthData) error {
 	id, err := util.GetIdFromParams(c.Params("id"))
 	if err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
+		res := types.RespondBadRequest(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
 	err = h.db.DeleteUser(id)
 	if err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
+		res := types.RespondBadRequest(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 

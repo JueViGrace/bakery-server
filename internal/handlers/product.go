@@ -30,7 +30,7 @@ func NewProductHandler(db data.ProductStore, validator *util.XValidator) Product
 func (h *ProductHandler) GetProducts(c *fiber.Ctx) error {
 	products, err := h.db.GetProducts()
 	if err != nil {
-		res := types.RespondNotFound(err.Error(), "Failed")
+		res := types.RespondNotFound(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
@@ -41,13 +41,13 @@ func (h *ProductHandler) GetProducts(c *fiber.Ctx) error {
 func (h *ProductHandler) GetProductById(c *fiber.Ctx) error {
 	id, err := util.GetIdFromParams(c.Params("id"))
 	if err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
+		res := types.RespondBadRequest(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
 	product, err := h.db.GetProductById(id)
 	if err != nil {
-		res := types.RespondNotFound(err.Error(), "Failed")
+		res := types.RespondNotFound(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
@@ -58,13 +58,13 @@ func (h *ProductHandler) GetProductById(c *fiber.Ctx) error {
 func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
 	r := new(types.CreateProductRequest)
 	if err := c.BodyParser(r); err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
+		res := types.RespondBadRequest(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
 	product, err := h.db.CreateProduct(r)
 	if err != nil {
-		res := types.RespondNotFound(err.Error(), "Failed")
+		res := types.RespondNotFound(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
@@ -75,13 +75,13 @@ func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
 func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
 	r := new(types.UpdateProductRequest)
 	if err := c.BodyParser(r); err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
+		res := types.RespondBadRequest(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
 	product, err := h.db.UpdateProduct(r)
 	if err != nil {
-		res := types.RespondNoContent(err.Error(), "Failed")
+		res := types.RespondNoContent(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
@@ -92,13 +92,13 @@ func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
 func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
 	id, err := util.GetIdFromParams(c.Params("id"))
 	if err != nil {
-		res := types.RespondBadRequest(err.Error(), "Failed")
+		res := types.RespondBadRequest(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
 	err = h.db.DeleteProduct(id)
 	if err != nil {
-		res := types.RespondNoContent(err.Error(), "Failed")
+		res := types.RespondNoContent(nil, err.Error())
 		return c.Status(res.Status).JSON(res)
 	}
 
