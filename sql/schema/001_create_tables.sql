@@ -48,13 +48,14 @@ CREATE TABLE IF NOT EXISTS bakery_order(
     total_amount REAL NOT NULL,
     payment_method TEXT NOT NULL DEFAULT 'cash',
     status TEXT NOT NULL DEFAULT 'placed',
-    user_id TEXT NOT NULL REFERENCES bakery_user(id),
+    user_id TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES bakery_user(id)
 );
 
 CREATE TABLE IF NOT EXISTS bakery_order_products(
-    order_id TEXT NOT NULL REFERENCES bakery_order(id),
+    order_id TEXT NOT NULL,
     product_id TEXT NOT NULL REFERENCES bakery_product(id),
     product_name TEXT NOT NULL,
     product_price REAL NOT NULL,
@@ -62,7 +63,9 @@ CREATE TABLE IF NOT EXISTS bakery_order_products(
     product_rating REAL NOT NULL,
     total_price REAL NOT NULL,
     quantity INTEGER NOT NULL,
-    PRIMARY KEY (order_id, product_id)
+    PRIMARY KEY (order_id, product_id),
+    FOREIGN KEY (order_id) REFERENCES bakery_order(id),
+    FOREIGN KEY (product_id) REFERENCES bakery_product(id)
 );
 
 -- +goose Down
