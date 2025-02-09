@@ -26,8 +26,8 @@ func DbSessionToSession(s *database.BakerySession) (*Session, error) {
 	}, nil
 }
 
-func CreateSessionToDb(r *Session) *database.CreateSessionParams {
-	return &database.CreateSessionParams{
+func CreateSessionToDb(r *Session) database.CreateSessionParams {
+	return database.CreateSessionParams{
 		RefreshToken: r.RefreshToken,
 		AccessToken:  r.AccessToken,
 		Username:     r.Username,
@@ -35,8 +35,8 @@ func CreateSessionToDb(r *Session) *database.CreateSessionParams {
 	}
 }
 
-func UpdateSessionToDb(r *Session) *database.UpdateSessionParams {
-	return &database.UpdateSessionParams{
+func UpdateSessionToDb(r *Session) database.UpdateSessionParams {
+	return database.UpdateSessionParams{
 		RefreshToken: r.RefreshToken,
 		AccessToken:  r.AccessToken,
 		Username:     r.Username,

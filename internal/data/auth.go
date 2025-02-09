@@ -8,6 +8,7 @@ import (
 	"github.com/JueViGrace/bakery-server/internal/database"
 	"github.com/JueViGrace/bakery-server/internal/types"
 	"github.com/JueViGrace/bakery-server/internal/util"
+	"github.com/google/uuid"
 )
 
 type AuthStore interface {
@@ -47,17 +48,27 @@ func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) 
 		return nil, errors.New("invalid credentials")
 	}
 
-	res, err := createTokens(&user)
+	userId, err := uuid.Parse(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.db.CreateSession(s.ctx, *types.CreateSessionToDb(&types.Session{}))
+	newTokens, err := createTokens(&user)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	err = s.db.CreateSession(s.ctx, types.CreateSessionToDb(&types.Session{
+		UserId:       userId,
+		Username:     user.Username,
+		RefreshToken: newTokens.RefreshToken,
+		AccessToken:  newTokens.AccessToken,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return newTokens, nil
 }
 
 func (s *authStore) SignUp(r *types.SignUpRequest) (*types.AuthResponse, error) {
@@ -71,20 +82,28 @@ func (s *authStore) SignUp(r *types.SignUpRequest) (*types.AuthResponse, error) 
 		return nil, err
 	}
 
-	res, err := createTokens(&user)
+	userId, err := uuid.Parse(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.db.CreateSession(s.ctx, *types.CreateSessionToDb(&types.Session{}))
+	newTokens, err := createTokens(&user)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	err = s.db.CreateSession(s.ctx, types.CreateSessionToDb(&types.Session{
+		UserId:       userId,
+		Username:     user.Username,
+		RefreshToken: newTokens.RefreshToken,
+		AccessToken:  newTokens.AccessToken,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return newTokens, nil
 }
-
-// TODO: finish
 
 func (s *authStore) Refresh(r *types.RefreshRequest, a *types.AuthData) (*types.AuthResponse, error) {
 	user, err := s.db.GetUserById(s.ctx, a.UserId.String())
@@ -92,19 +111,32 @@ func (s *authStore) Refresh(r *types.RefreshRequest, a *types.AuthData) (*types.
 		return nil, err
 	}
 
-	res, err := createTokens(&user)
+	userId, err := uuid.Parse(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.db.CreateSession(s.ctx, *types.CreateSessionToDb(&types.Session{}))
+	newTokens, err := createTokens(&user)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	err = s.db.UpdateSession(s.ctx, types.UpdateSessionToDb(
+		&types.Session{
+			UserId:       userId,
+			Username:     user.Username,
+			RefreshToken: newTokens.RefreshToken,
+			AccessToken:  newTokens.AccessToken,
+		},
+	))
+	if err != nil {
+		return nil, err
+	}
+
+	return newTokens, nil
 }
 
+// TODO: implement this
 func (s *authStore) RecoverPassword(r *types.RecoverPasswordRequest) (string, error) {
 	return "", nil
 }

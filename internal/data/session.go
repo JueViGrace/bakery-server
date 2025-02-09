@@ -66,7 +66,7 @@ func (s *sessionStore) GetSessionByUsername(username string) (*types.Session, er
 }
 
 func (s *sessionStore) CreateSession(r *types.Session) error {
-	err := s.db.CreateSession(s.ctx, *types.CreateSessionToDb(r))
+	err := s.db.CreateSession(s.ctx, types.CreateSessionToDb(r))
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (s *sessionStore) CreateSession(r *types.Session) error {
 }
 
 func (s *sessionStore) UpdateSession(r *types.Session) error {
-	err := s.db.UpdateSession(s.ctx, *types.UpdateSessionToDb(r))
+	err := s.db.UpdateSession(s.ctx, types.UpdateSessionToDb(r))
 	if err != nil {
 		return err
 	}
