@@ -10,10 +10,12 @@ import (
 
 type SessionStore interface {
 	GetSessionById(id uuid.UUID) (session *types.Session, err error)
-	GetSessionByUsername(username string) (session *types.Session, err error)
+	GetSessionByUser(id uuid.UUID) (sessions []types.Session, err error)
+	GetSessionByUsername(username string) (sessions []types.Session, err error)
 	CreateSession(r *types.Session) (err error)
 	UpdateSession(r *types.Session) (err error)
 	DeleteSessionById(id uuid.UUID) (err error)
+	DeleteSessionByUser(id uuid.UUID) (err error)
 	DeleteSessionByToken(token string) (err error)
 }
 
@@ -49,24 +51,48 @@ func (s *sessionStore) GetSessionById(id uuid.UUID) (*types.Session, error) {
 	return session, nil
 }
 
-func (s *sessionStore) GetSessionByUsername(username string) (*types.Session, error) {
-	session := new(types.Session)
+func (s *sessionStore) GetSessionByUser(id uuid.UUID) ([]types.Session, error) {
+	sessions := make([]types.Session, 0)
 
-	dbSession, err := s.db.GetSessionByUsername(s.ctx, username)
+	dbSessions, err := s.db.GetSessionByUser(s.ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	session, err = types.DbSessionToSession(&dbSession)
+	for _, dbSession := range dbSessions {
+		session, err := types.DbSessionToSession(&dbSession)
+		if err != nil {
+			return nil, err
+		}
+		sessions = append(sessions, *session)
+	}
+
+	return sessions, nil
+}
+
+func (s *sessionStore) GetSessionByUsername(username string) ([]types.Session, error) {
+	sessions := make([]types.Session, 0)
+
+	dbSessions, err := s.db.GetSessionByUsername(s.ctx, username)
 	if err != nil {
 		return nil, err
 	}
 
-	return session, nil
+	for _, dbSession := range dbSessions {
+		session, err := types.DbSessionToSession(&dbSession)
+		if err != nil {
+			return nil, err
+		}
+		sessions = append(sessions, *session)
+	}
+
+	return sessions, nil
 }
 
 func (s *sessionStore) CreateSession(r *types.Session) error {
-	err := s.db.CreateSession(s.ctx, types.CreateSessionToDb(r))
+	params := types.CreateSessionToDb(r)
+
+	err := s.db.CreateSession(s.ctx, params)
 	if err != nil {
 		return err
 	}
@@ -83,6 +109,14 @@ func (s *sessionStore) UpdateSession(r *types.Session) error {
 
 func (s *sessionStore) DeleteSessionById(id uuid.UUID) error {
 	err := s.db.DeleteSessionById(s.ctx, id.String())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *sessionStore) DeleteSessionByUser(id uuid.UUID) error {
+	err := s.db.DeleteSessionByUser(s.ctx, id.String())
 	if err != nil {
 		return err
 	}

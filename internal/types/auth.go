@@ -12,9 +12,10 @@ import (
 type AuthDataHandler = func(*fiber.Ctx, *AuthData) error
 
 type AuthData struct {
-	UserId   uuid.UUID
-	Username string
-	Role     string
+	UserId    uuid.UUID
+	SessionId uuid.UUID
+	Username  string
+	Role      string
 }
 
 type AuthResponse struct {
@@ -28,16 +29,16 @@ type SignInRequest struct {
 }
 
 type SignUpRequest struct {
-	FirstName   string    `json:"first_name" validate:"required"`
-	LastName    string    `json:"last_name" validate:"required"`
-	Username    string    `json:"username" validate:"required"`
-	Email       string    `json:"email" validate:"required,email"`
-	Password    string    `json:"password" validate:"required"`
-	PhoneNumber string    `json:"phone_number" validate:"required"`
-	BirthDate   time.Time `json:"birth_date" validate:"required"`
-	Address1    string    `json:"address1" validate:"required"`
-	Address2    string    `json:"address2" validate:"required"`
-	Gender      string    `json:"gender" validate:"required"`
+	FirstName   string `json:"first_name" validate:"required"`
+	LastName    string `json:"last_name" validate:"required"`
+	Username    string `json:"username" validate:"required"`
+	Email       string `json:"email" validate:"required,email"`
+	Password    string `json:"password" validate:"required"`
+	PhoneNumber string `json:"phone_number" validate:"required"`
+	BirthDate   string `json:"birth_date" validate:"required"`
+	Address1    string `json:"address1" validate:"required"`
+	Address2    string `json:"address2" validate:"required"`
+	Gender      string `json:"gender" validate:"required"`
 }
 
 type RefreshRequest struct {
@@ -59,6 +60,11 @@ func SignUpRequestToDbUser(r *SignUpRequest) (*database.CreateUserParams, error)
 		return nil, err
 	}
 
+	birthDate, err := time.Parse(time.DateOnly, r.BirthDate)
+	if err != nil {
+		return nil, err
+	}
+
 	return &database.CreateUserParams{
 		ID:          id.String(),
 		FirstName:   r.FirstName,
@@ -67,7 +73,7 @@ func SignUpRequestToDbUser(r *SignUpRequest) (*database.CreateUserParams, error)
 		Email:       r.Email,
 		Password:    pass,
 		PhoneNumber: r.PhoneNumber,
-		BirthDate:   r.BirthDate.String(),
+		BirthDate:   util.FormatDateForResponse(birthDate),
 		Address1:    r.Address1,
 		Address2:    r.Address2,
 		Gender:      r.Gender,

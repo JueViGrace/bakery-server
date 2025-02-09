@@ -18,10 +18,11 @@ CREATE TABLE IF NOT EXISTS bakery_user(
 );
 
 CREATE TABLE IF NOT EXISTS bakery_session(
+    id TEXT NOT NULL PRIMARY KEY,
     refresh_token TEXT NOT NULL,
     access_token TEXT NOT NULL,
     username TEXT NOT NULL,
-    user_id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL,
     FOREIGN KEY(user_id) REFERENCES bakery_user(id)
 );
 
@@ -65,9 +66,9 @@ CREATE TABLE IF NOT EXISTS bakery_order_products(
 );
 
 -- +goose Down
-DROP TABLE bakery_user CASCADE;
-DROP TABLE bakery_product CASCADE;
-DROP TABLE bakery_order CASCADE;
+DROP TABLE bakery_user;
+DROP TABLE bakery_product;
+DROP TABLE bakery_order;
 DROP TABLE bakery_order_products;
 DROP TABLE bakery_session;
 

@@ -47,6 +47,7 @@ type BakeryProduct struct {
 }
 
 type BakerySession struct {
+	ID           string
 	RefreshToken string
 	AccessToken  string
 	Username     string

@@ -29,7 +29,6 @@ func NewAuthHandler(db data.AuthStore, validator *util.XValidator) AuthHandler {
 	}
 }
 
-// todo: validation
 func (h *authHandler) SignIn(c *fiber.Ctx) error {
 	r := new(types.SignInRequest)
 	res := new(types.APIResponse)

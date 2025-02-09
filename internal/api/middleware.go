@@ -52,7 +52,7 @@ func getUserDataForReq(c *fiber.Ctx, db data.Storage) (*types.AuthData, error) {
 		return nil, err
 	}
 
-	session, err := db.SessionStore().GetSessionById(jwt.Claims.UserId)
+	session, err := db.SessionStore().GetSessionById(jwt.Claims.SessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +63,9 @@ func getUserDataForReq(c *fiber.Ctx, db data.Storage) (*types.AuthData, error) {
 	}
 
 	return &types.AuthData{
-		UserId:   dbUser.ID,
-		Username: dbUser.Username,
-		Role:     dbUser.Role,
+		UserId:    dbUser.ID,
+		SessionId: session.ID,
+		Username:  dbUser.Username,
+		Role:      dbUser.Role,
 	}, nil
 }

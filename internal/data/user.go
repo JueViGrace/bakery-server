@@ -71,7 +71,12 @@ func (us *userStore) GetUserById(id *uuid.UUID) (*types.UserResponse, error) {
 func (us *userStore) UpdateUser(r *types.UpdateUserRequest) (*types.UserResponse, error) {
 	user := new(types.UserResponse)
 
-	dbUser, err := us.db.UpdateUser(us.ctx, *types.NewUpdateUserParams(r))
+	params, err := types.NewUpdateUserParams(r)
+	if err != nil {
+		return nil, err
+	}
+
+	dbUser, err := us.db.UpdateUser(us.ctx, *params)
 	if err != nil {
 		return nil, err
 	}

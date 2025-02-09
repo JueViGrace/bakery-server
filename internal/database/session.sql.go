@@ -13,15 +13,17 @@ const createSession = `-- name: CreateSession :exec
 ;
 
 insert into bakery_session(
+    id,
     refresh_token,
     access_token,
     username,
     user_id
 )
-values (?, ?, ?, ?)
+values (?, ?, ?, ?, ?)
 `
 
 type CreateSessionParams struct {
+	ID           string
 	RefreshToken string
 	AccessToken  string
 	Username     string
@@ -30,6 +32,7 @@ type CreateSessionParams struct {
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
 	_, err := q.db.ExecContext(ctx, createSession,
+		arg.ID,
 		arg.RefreshToken,
 		arg.AccessToken,
 		arg.Username,
@@ -40,11 +43,11 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 
 const deleteSessionById = `-- name: DeleteSessionById :exec
 delete from bakery_session
-where user_id = ?
+where id = ?
 `
 
-func (q *Queries) DeleteSessionById(ctx context.Context, userID string) error {
-	_, err := q.db.ExecContext(ctx, deleteSessionById, userID)
+func (q *Queries) DeleteSessionById(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteSessionById, id)
 	return err
 }
 
@@ -65,16 +68,29 @@ func (q *Queries) DeleteSessionByToken(ctx context.Context, arg DeleteSessionByT
 	return err
 }
 
-const getSessionById = `-- name: GetSessionById :one
-select refresh_token, access_token, username, user_id
-from bakery_session
+const deleteSessionByUser = `-- name: DeleteSessionByUser :exec
+;
+
+delete from bakery_session
 where user_id = ?
 `
 
-func (q *Queries) GetSessionById(ctx context.Context, userID string) (BakerySession, error) {
-	row := q.db.QueryRowContext(ctx, getSessionById, userID)
+func (q *Queries) DeleteSessionByUser(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteSessionByUser, userID)
+	return err
+}
+
+const getSessionById = `-- name: GetSessionById :one
+select id, refresh_token, access_token, username, user_id
+from bakery_session
+where id = ?
+`
+
+func (q *Queries) GetSessionById(ctx context.Context, id string) (BakerySession, error) {
+	row := q.db.QueryRowContext(ctx, getSessionById, id)
 	var i BakerySession
 	err := row.Scan(
+		&i.ID,
 		&i.RefreshToken,
 		&i.AccessToken,
 		&i.Username,
@@ -83,24 +99,78 @@ func (q *Queries) GetSessionById(ctx context.Context, userID string) (BakerySess
 	return i, err
 }
 
-const getSessionByUsername = `-- name: GetSessionByUsername :one
+const getSessionByUser = `-- name: GetSessionByUser :many
 ;
 
-select refresh_token, access_token, username, user_id
+select id, refresh_token, access_token, username, user_id
+from bakery_session
+where user_id = ?
+`
+
+func (q *Queries) GetSessionByUser(ctx context.Context, userID string) ([]BakerySession, error) {
+	rows, err := q.db.QueryContext(ctx, getSessionByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BakerySession
+	for rows.Next() {
+		var i BakerySession
+		if err := rows.Scan(
+			&i.ID,
+			&i.RefreshToken,
+			&i.AccessToken,
+			&i.Username,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSessionByUsername = `-- name: GetSessionByUsername :many
+;
+
+select id, refresh_token, access_token, username, user_id
 from bakery_session
 where username = ?
 `
 
-func (q *Queries) GetSessionByUsername(ctx context.Context, username string) (BakerySession, error) {
-	row := q.db.QueryRowContext(ctx, getSessionByUsername, username)
-	var i BakerySession
-	err := row.Scan(
-		&i.RefreshToken,
-		&i.AccessToken,
-		&i.Username,
-		&i.UserID,
-	)
-	return i, err
+func (q *Queries) GetSessionByUsername(ctx context.Context, username string) ([]BakerySession, error) {
+	rows, err := q.db.QueryContext(ctx, getSessionByUsername, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BakerySession
+	for rows.Next() {
+		var i BakerySession
+		if err := rows.Scan(
+			&i.ID,
+			&i.RefreshToken,
+			&i.AccessToken,
+			&i.Username,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateSession = `-- name: UpdateSession :exec
@@ -108,14 +178,14 @@ update bakery_session set
     refresh_token = ?,
     access_token = ?,
     username = ?
-where user_id = ?
+where id = ?
 `
 
 type UpdateSessionParams struct {
 	RefreshToken string
 	AccessToken  string
 	Username     string
-	UserID       string
+	ID           string
 }
 
 func (q *Queries) UpdateSession(ctx context.Context, arg UpdateSessionParams) error {
@@ -123,7 +193,7 @@ func (q *Queries) UpdateSession(ctx context.Context, arg UpdateSessionParams) er
 		arg.RefreshToken,
 		arg.AccessToken,
 		arg.Username,
-		arg.UserID,
+		arg.ID,
 	)
 	return err
 }

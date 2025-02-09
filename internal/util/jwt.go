@@ -20,8 +20,9 @@ type JwtData struct {
 }
 
 type userClaims struct {
-	UserId   uuid.UUID `json:"userId"`
-	FullName string    `json:"fullName"`
+	UserId    uuid.UUID `json:"user_id"`
+	SessionID uuid.UUID `json:"session_id"`
+	Username  string    `json:"username"`
 }
 
 type JWTClaims struct {
@@ -40,43 +41,40 @@ var (
 	}
 )
 
-func CreateAccessToken(id, fullName string) (string, error) {
-	return CreateJWT(id, fullName, time.Now().UTC().Add(1*time.Hour))
+func CreateAccessToken(userId, sessionId uuid.UUID, username string) (string, error) {
+	var accessExpiration time.Time = time.Now().UTC().Add(1 * time.Hour)
+	return CreateJWT(userId, sessionId, username, accessExpiration)
 }
 
-func CreateRefreshToken(id, fullName string) (string, error) {
-	return CreateJWT(id, fullName, time.Now().UTC().Add(24*time.Hour))
+func CreateRefreshToken(userId, sessionId uuid.UUID, username string) (string, error) {
+	var refreshExpiration time.Time = time.Now().UTC().Add(24 * time.Hour)
+	return CreateJWT(userId, sessionId, username, refreshExpiration)
 }
 
-func CreateJWT(id, fullName string, expiration time.Time) (string, error) {
+func CreateJWT(userId, sessionId uuid.UUID, username string, expiration time.Time) (string, error) {
 	tokenId, err := uuid.NewV7()
-	if err != nil {
-		return "", err
-	}
-
-	userId, err := uuid.Parse(id)
 	if err != nil {
 		return "", err
 	}
 
 	claims := JWTClaims{
 		userClaims{
-			UserId:   userId,
-			FullName: fullName,
+			UserId:    userId,
+			SessionID: sessionId,
+			Username:  username,
 		},
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiration),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+			NotBefore: jwt.NewNumericDate(time.Now().UTC()),
 			Issuer:    Issuer,
-			Subject:   id,
+			Subject:   userId.String(),
 			ID:        tokenId.String(),
 			Audience:  Audience,
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
 	return token.SignedString([]byte(jwtSecret))
 }
 
@@ -104,7 +102,7 @@ func ExtractJWTFromHeader(c *fiber.Ctx, expired func(string)) (*JwtData, error) 
 		return nil, errors.New("permission denied")
 	}
 
-	claims, ok := token.Claims.(JWTClaims)
+	claims, ok := token.Claims.(*JWTClaims)
 	if !ok || !token.Valid {
 		log.Error("invalid claims or expired")
 		expired(tokenString)
@@ -126,6 +124,6 @@ func ExtractJWTFromHeader(c *fiber.Ctx, expired func(string)) (*JwtData, error) 
 
 	return &JwtData{
 		Token:  token,
-		Claims: &claims,
+		Claims: claims,
 	}, nil
 }

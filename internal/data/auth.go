@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/JueViGrace/bakery-server/internal/database"
 	"github.com/JueViGrace/bakery-server/internal/types"
@@ -34,6 +33,7 @@ func NewAuthStore(ctx context.Context, db *database.Queries) AuthStore {
 	}
 }
 
+// TODO: limit sessions to 5?
 func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) {
 	user, err := s.db.GetUserByEmail(s.ctx, r.Email)
 	if err != nil {
@@ -53,12 +53,18 @@ func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) 
 		return nil, err
 	}
 
-	newTokens, err := createTokens(&user)
+	sessionId, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	newTokens, err := createTokens(userId, sessionId, user.Username)
 	if err != nil {
 		return nil, err
 	}
 
 	err = s.db.CreateSession(s.ctx, types.CreateSessionToDb(&types.Session{
+		ID:           sessionId,
 		UserId:       userId,
 		Username:     user.Username,
 		RefreshToken: newTokens.RefreshToken,
@@ -71,6 +77,7 @@ func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) 
 	return newTokens, nil
 }
 
+// TODO: check for conflicts
 func (s *authStore) SignUp(r *types.SignUpRequest) (*types.AuthResponse, error) {
 	newUser, err := types.SignUpRequestToDbUser(r)
 	if err != nil {
@@ -87,12 +94,18 @@ func (s *authStore) SignUp(r *types.SignUpRequest) (*types.AuthResponse, error) 
 		return nil, err
 	}
 
-	newTokens, err := createTokens(&user)
+	sessionId, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	newTokens, err := createTokens(userId, sessionId, user.Username)
 	if err != nil {
 		return nil, err
 	}
 
 	err = s.db.CreateSession(s.ctx, types.CreateSessionToDb(&types.Session{
+		ID:           sessionId,
 		UserId:       userId,
 		Username:     user.Username,
 		RefreshToken: newTokens.RefreshToken,
@@ -116,7 +129,7 @@ func (s *authStore) Refresh(r *types.RefreshRequest, a *types.AuthData) (*types.
 		return nil, err
 	}
 
-	newTokens, err := createTokens(&user)
+	newTokens, err := createTokens(userId, a.SessionId, user.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -141,13 +154,13 @@ func (s *authStore) RecoverPassword(r *types.RecoverPasswordRequest) (string, er
 	return "", nil
 }
 
-func createTokens(user *database.BakeryUser) (*types.AuthResponse, error) {
-	accessToken, err := util.CreateAccessToken(user.ID, fmt.Sprintf("%s %s", user.FirstName, user.LastName))
+func createTokens(userId, sessionId uuid.UUID, username string) (*types.AuthResponse, error) {
+	accessToken, err := util.CreateAccessToken(userId, sessionId, username)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := util.CreateRefreshToken(user.ID, fmt.Sprintf("%s %s", user.FirstName, user.LastName))
+	refreshToken, err := util.CreateRefreshToken(userId, sessionId, username)
 	if err != nil {
 		return nil, err
 	}

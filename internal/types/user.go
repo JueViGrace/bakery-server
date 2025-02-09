@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/JueViGrace/bakery-server/internal/database"
+	"github.com/JueViGrace/bakery-server/internal/util"
 	"github.com/google/uuid"
 )
 
@@ -47,11 +48,6 @@ func DbUserToUser(db *database.BakeryUser) (user *UserResponse, err error) {
 		return nil, err
 	}
 
-	birthDate, err := time.Parse(time.DateTime, db.BirthDate)
-	if err != nil {
-		return nil, err
-	}
-
 	user = &UserResponse{
 		ID:          id,
 		FirstName:   db.FirstName,
@@ -60,7 +56,7 @@ func DbUserToUser(db *database.BakeryUser) (user *UserResponse, err error) {
 		Email:       db.Email,
 		Password:    db.Password,
 		PhoneNumber: db.PhoneNumber,
-		BirthDate:   birthDate.String(),
+		BirthDate:   db.BirthDate,
 		Address1:    db.Address1,
 		Address2:    db.Address2,
 		Gender:      db.Gender,
@@ -73,16 +69,21 @@ func DbUserToUser(db *database.BakeryUser) (user *UserResponse, err error) {
 	return
 }
 
-func NewUpdateUserParams(r *UpdateUserRequest) *database.UpdateUserParams {
+func NewUpdateUserParams(r *UpdateUserRequest) (*database.UpdateUserParams, error) {
+	birthDate, err := time.Parse(time.DateTime, r.BirthDate)
+	if err != nil {
+		return nil, err
+	}
+
 	return &database.UpdateUserParams{
 		FirstName:   r.FirstName,
 		LastName:    r.LastName,
 		PhoneNumber: r.PhoneNumber,
-		BirthDate:   r.BirthDate,
+		BirthDate:   util.FormatDateForResponse(birthDate),
 		Address1:    r.Address1,
 		Address2:    r.Address2,
 		Gender:      r.Gender,
 		UpdatedAt:   time.Now().UTC().String(),
 		ID:          r.ID.String(),
-	}
+	}, nil
 }
