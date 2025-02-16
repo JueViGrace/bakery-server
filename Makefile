@@ -3,7 +3,7 @@ all: build test
 
 build:
 	@echo "Building ..."
-	
+
 	@go build -o ./bin/main ./cmd/api/main.go
 
 # Run the application
@@ -66,10 +66,13 @@ watch:
 sqlc:
 	@sqlc generate
 
+templ:
+	@templ generate
+
 migrate-up:
 	@GOOSE_DRIVER=sqlite3 GOOSE_MIGRATION_DIR=./sql/schema GOOSE_DBSTRING="./bakery.db" goose up  
 
 migrate-down:
 	@GOOSE_DRIVER=sqlite3 GOOSE_MIGRATION_DIR=./sql/schema GOOSE_DBSTRING="./bakery.db" goose down
 
-.PHONY: all build run run-prod test clean watch docker-run docker-down sqlc migrate-up migrate-down itest
+.PHONY: all build run run-prod test clean watch docker-run docker-down sqlc templ migrate-up migrate-down itest

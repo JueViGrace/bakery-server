@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/JueViGrace/bakery-server/internal/api/handlers"
+	"github.com/JueViGrace/bakery-server/internal/handlers"
 	"github.com/gofiber/fiber/v2"
 )
 
