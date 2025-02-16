@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/JueViGrace/bakery-server/internal/data"
 	"github.com/JueViGrace/bakery-server/internal/types"
@@ -24,17 +25,10 @@ type api struct {
 	validator *util.XValidator
 }
 
-func New() Api {
+func New(app *fiber.App, db data.Storage) Api {
 	return &api{
-		App: fiber.New(fiber.Config{
-			ServerHeader: "BakeryServer",
-			AppName:      "BakeryServer",
-			ErrorHandler: func(c *fiber.Ctx, err error) error {
-				res := types.RespondBadRequest(nil, err.Error())
-				return c.Status(res.Status).JSON(res)
-			},
-		}),
-		db: data.NewStorage(),
+		App: app,
+		db:  db,
 		validator: &util.XValidator{
 			Validator: validator.New(),
 		},
@@ -50,10 +44,16 @@ func (a *api) Init() (err error) {
 	a.App.Use(logger.New())
 	a.App.Use(cors.New())
 
+	a.Static("/static", os.Getenv("STATIC_RES"), fiber.Static{
+		Compress:      true,
+		CacheDuration: 10 * time.Minute,
+	})
+
 	a.RegisterRoutes()
 
 	a.App.Use(func(c *fiber.Ctx) error {
-		return c.SendStatus(404)
+		res := types.RespondNotFound(nil, "Not found")
+		return c.Status(res.Status).JSON(res)
 	})
 
 	err = a.Listen(fmt.Sprintf(":%d", port))

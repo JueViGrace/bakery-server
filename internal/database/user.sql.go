@@ -101,16 +101,21 @@ func (q *Queries) DeleteUser(ctx context.Context, arg DeleteUserParams) error {
 	return err
 }
 
-const getUserByEmail = `-- name: GetUserByEmail :one
+const getUser = `-- name: GetUser :one
 ;
 
 select id, first_name, last_name, username, email, password, phone_number, birth_date, address1, address2, gender, role, created_at, updated_at, deleted_at
 from bakery_user
-where email = ?
+where email = ? or username = ?
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (BakeryUser, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+type GetUserParams struct {
+	Email    string
+	Username string
+}
+
+func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (BakeryUser, error) {
+	row := q.db.QueryRowContext(ctx, getUser, arg.Email, arg.Username)
 	var i BakeryUser
 	err := row.Scan(
 		&i.ID,

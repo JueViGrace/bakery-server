@@ -9,10 +9,10 @@ from bakery_user
 where id = ?
 ;
 
--- name: GetUserByEmail :one
+-- name: GetUser :one
 select *
 from bakery_user
-where email = ?
+where email = ? or username = ?
 ;
 
 -- name: CreateUser :one

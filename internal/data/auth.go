@@ -35,7 +35,10 @@ func NewAuthStore(ctx context.Context, db *database.Queries) AuthStore {
 
 // TODO: limit sessions to 5?
 func (s *authStore) SignIn(r *types.SignInRequest) (*types.AuthResponse, error) {
-	user, err := s.db.GetUserByEmail(s.ctx, r.Email)
+	user, err := s.db.GetUser(s.ctx, database.GetUserParams{
+		Email:    r.Email,
+		Username: r.Email,
+	})
 	if err != nil {
 		return nil, errors.New("user not found")
 	}

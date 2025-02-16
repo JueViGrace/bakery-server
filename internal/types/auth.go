@@ -31,7 +31,7 @@ type SignInRequest struct {
 type SignUpRequest struct {
 	FirstName   string `json:"first_name" validate:"required"`
 	LastName    string `json:"last_name" validate:"required"`
-	Username    string `json:"username" validate:"required"`
+	Username    string `json:"username"`
 	Email       string `json:"email" validate:"required,email"`
 	Password    string `json:"password" validate:"required"`
 	PhoneNumber string `json:"phone_number" validate:"required"`
@@ -65,11 +65,16 @@ func SignUpRequestToDbUser(r *SignUpRequest) (*database.CreateUserParams, error)
 		return nil, err
 	}
 
+	var username string = r.Username
+	if username == "" {
+		username = r.Email
+	}
+
 	return &database.CreateUserParams{
 		ID:          id.String(),
 		FirstName:   r.FirstName,
 		LastName:    r.LastName,
-		Username:    r.Username,
+		Username:    username,
 		Email:       r.Email,
 		Password:    pass,
 		PhoneNumber: r.PhoneNumber,
